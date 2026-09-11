@@ -13,6 +13,7 @@ namespace MovieLogger.DAL.Extensions
             services.AddDbContext<MovieLoggerDbContext>(options =>
                 options.UseSqlite(configuration.GetConnectionString("MovieLoggerDb")));
 
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IMovieRepository, MovieRepository>();
             services.AddScoped<IGenreRepository, GenreRepository>();
 
