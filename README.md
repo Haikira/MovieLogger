@@ -22,6 +22,24 @@ The solution is split into three projects:
 - `MovieLogger.Service` - business logic, entities, DTOs and repository interfaces
 - `MovieLogger.DAL` - data access, Entity Framework Core and SQLite
 
+## Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    MOVIE {
+        int Id PK
+        string Title
+        int ReleaseYear
+        string Director
+        string Description
+    }
+    GENRE {
+        int Id PK
+        string Name
+    }
+    MOVIE }o--o{ GENRE : "has"
+```
+
 ## Current Features
 
 - Create, read, update and delete movies

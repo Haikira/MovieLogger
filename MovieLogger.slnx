@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="MovieLogger.Api/MovieLogger.Api.csproj" Id="2ea6aa13-faa2-4d9e-8f40-005838e32408" />
   <Project Path="MovieLogger.DAL/MovieLogger.DAL.csproj" />
+  <Project Path="MovieLogger.Service.Tests/MovieLogger.Service.Tests.csproj" />
   <Project Path="MovieLogger.Service/MovieLogger.Service.csproj" />
 </Solution>
