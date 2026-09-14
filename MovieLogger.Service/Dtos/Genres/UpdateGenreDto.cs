@@ -1,11 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using MovieLogger.Service.Enums;
 
 namespace MovieLogger.Service.Dtos.Genres
 {
     public class UpdateGenreDto
     {
-        [Required]
-        [MaxLength(100)]
-        public string Name { get; set; } = string.Empty;
+        [EnumDataType(typeof(Enums.GenreTitle))]
+        public Enums.GenreTitle Title { get; set; }
     }
 }

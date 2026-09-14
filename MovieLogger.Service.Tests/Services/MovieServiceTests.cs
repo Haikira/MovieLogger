@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using MovieLogger.Service.Dtos.Movies;
 using MovieLogger.Service.Entities;
+using MovieLogger.Service.Enums;
 using MovieLogger.Service.Repositories;
 using MovieLogger.Service.Services;
 using MovieLogger.Service.Tests.TestSupport;
@@ -26,7 +27,7 @@ namespace MovieLogger.Service.Tests.Services
         {
             var movies = new List<Movie>
             {
-                new() { Id = 1, Title = "The Matrix", ReleaseDate = new DateOnly(1999, 3, 31), Genres = [new Genre { Id = 1, Name = "Sci-Fi" }] },
+                new() { Id = 1, Title = "The Matrix", ReleaseDate = new DateOnly(1999, 3, 31), Genres = [ new Genre { Id = 1, Title = GenreTitle.Action }, new Genre { Id = 12, Title = GenreTitle.ScienceFiction } ] },
                 new() { Id = 2, Title = "Heat", ReleaseDate = new DateOnly(1995, 12, 15), Genres = [] },
             };
             _movieRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(movies);
@@ -35,7 +36,7 @@ namespace MovieLogger.Service.Tests.Services
 
             result.Should().HaveCount(2);
             result[0].Title.Should().Be("The Matrix");
-            result[0].Genres.Should().ContainSingle(g => g.Name == "Sci-Fi");
+            result[0].Genres.Should().Contain(g => g.Title == GenreTitle.ScienceFiction);
             result[1].Title.Should().Be("Heat");
         }
 
@@ -99,8 +100,8 @@ namespace MovieLogger.Service.Tests.Services
         {
             var genres = new List<Genre>
             {
-                new() { Id = 1, Name = "Sci-Fi" },
-                new() { Id = 2, Name = "Drama" },
+                new() { Id = 1, Title = GenreTitle.ScienceFiction },
+                new() { Id = 2, Title = GenreTitle.Drama },
             };
             _genreRepository.GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>()).Returns(genres);
             var dto = new CreateMovieDto { Title = "Arrival", ReleaseDate = new DateOnly(2016, 11, 11), GenreIds = [1, 2] };
@@ -109,7 +110,7 @@ namespace MovieLogger.Service.Tests.Services
 
             result.Outcome.Should().Be(MovieMutationOutcome.Success);
             result.Movie!.Genres.Should().HaveCount(2);
-            result.Movie.Genres.Select(g => g.Name).Should().BeEquivalentTo("Sci-Fi", "Drama");
+            result.Movie.Genres.Select(g => g.Title).Should().BeEquivalentTo(new[] { GenreTitle.ScienceFiction, GenreTitle.Drama });
             await _movieRepository.Received(1).AddAsync(
                 Arg.Is<Movie>(m => m.Title == "Arrival" && m.Genres.Count == 2),
                 Arg.Any<CancellationToken>());
@@ -118,7 +119,7 @@ namespace MovieLogger.Service.Tests.Services
         [Fact]
         public async Task CreateAsync_SomeGenreIdsInvalid_ReturnsInvalidGenreIdsAndDoesNotAddMovie()
         {
-            var genres = new List<Genre> { new() { Id = 1, Name = "Sci-Fi" } };
+            var genres = new List<Genre> { new() { Id = 1, Title = GenreTitle.ScienceFiction } };
             _genreRepository.GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>()).Returns(genres);
             var dto = new CreateMovieDto { Title = "Arrival", ReleaseDate = new DateOnly(2016, 11, 11), GenreIds = [1, 2, 3] };
 
@@ -135,7 +136,7 @@ namespace MovieLogger.Service.Tests.Services
         {
             // Documents current behaviour: ResolveGenresAsync only de-duplicates the *invalid* id list,
             // not the resolved genres themselves. It trusts whatever the repository returns as-is.
-            var genre = new Genre { Id = 1, Name = "Sci-Fi" };
+            var genre = new Genre { Id = 1, Title = GenreTitle.ScienceFiction };
             _genreRepository.GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
                 .Returns(new List<Genre> { genre, genre });
             var dto = new CreateMovieDto { Title = "Arrival", ReleaseDate = new DateOnly(2016, 11, 11), GenreIds = [1] };
@@ -162,7 +163,7 @@ namespace MovieLogger.Service.Tests.Services
         [Fact]
         public async Task UpdateAsync_InvalidGenreIds_ReturnsInvalidGenreIdsWithoutMutatingOrUpdatingMovie()
         {
-            var existingGenre = new Genre { Id = 1, Name = "Sci-Fi" };
+            var existingGenre = new Genre { Id = 1, Title = GenreTitle.ScienceFiction };
             var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseDate = new DateOnly(2000, 1, 1), Genres = [existingGenre] };
             _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingMovie);
             _genreRepository.GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>()).Returns(new List<Genre>());
@@ -180,8 +181,8 @@ namespace MovieLogger.Service.Tests.Services
         [Fact]
         public async Task UpdateAsync_ValidGenreIds_UpdatesFieldsReplacesGenresAndPersists()
         {
-            var oldGenre = new Genre { Id = 1, Name = "Sci-Fi" };
-            var newGenre = new Genre { Id = 2, Name = "Drama" };
+            var oldGenre = new Genre { Id = 1, Title = GenreTitle.ScienceFiction };
+            var newGenre = new Genre { Id = 2, Title = GenreTitle.Drama };
             var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseDate = new DateOnly(2000, 1, 1), Genres = [oldGenre] };
             _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingMovie);
             _genreRepository.GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
@@ -194,14 +195,14 @@ namespace MovieLogger.Service.Tests.Services
             existingMovie.Title.Should().Be("New Title");
             existingMovie.ReleaseDate.Should().Be(new DateOnly(2020, 6, 1));
             existingMovie.Genres.Should().ContainSingle().Which.Should().BeSameAs(newGenre);
-            result.Movie!.Genres.Should().ContainSingle(g => g.Name == "Drama");
+            result.Movie!.Genres.Should().ContainSingle(g => g.Title == GenreTitle.Drama);
             await _movieRepository.Received(1).UpdateAsync(existingMovie, Arg.Any<CancellationToken>());
         }
 
         [Fact]
         public async Task UpdateAsync_ValidWithEmptyGenreIds_ClearsGenres()
         {
-            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseDate = new DateOnly(2000, 1, 1), Genres = [new Genre { Id = 1, Name = "Sci-Fi" }] };
+            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseDate = new DateOnly(2000, 1, 1), Genres = [new Genre { Id = 1, Title = GenreTitle.ScienceFiction }] };
             _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingMovie);
             var dto = new UpdateMovieDto { Title = "New Title", ReleaseDate = new DateOnly(2020, 6, 1), GenreIds = [] };
 

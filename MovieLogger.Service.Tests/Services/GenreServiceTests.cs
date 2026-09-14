@@ -2,6 +2,7 @@ using AutoMapper;
 using FluentAssertions;
 using MovieLogger.Service.Dtos.Genres;
 using MovieLogger.Service.Entities;
+using MovieLogger.Service.Enums;
 using MovieLogger.Service.Repositories;
 using MovieLogger.Service.Services;
 using MovieLogger.Service.Tests.TestSupport;
@@ -25,15 +26,15 @@ namespace MovieLogger.Service.Tests.Services
         {
             var genres = new List<Genre>
             {
-                new() { Id = 1, Name = "Sci-Fi" },
-                new() { Id = 2, Name = "Drama" },
+                new() { Id = 1, Title = GenreTitle.ScienceFiction },
+                new() { Id = 2, Title = GenreTitle.Drama },
             };
             _genreRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(genres);
 
             var result = await _sut.GetAllAsync();
 
             result.Should().HaveCount(2);
-            result.Select(g => g.Name).Should().BeEquivalentTo("Sci-Fi", "Drama");
+            result.Select(g => g.Title).Should().BeEquivalentTo(new[] { GenreTitle.ScienceFiction, GenreTitle.Drama });
         }
 
         [Fact]
@@ -49,13 +50,13 @@ namespace MovieLogger.Service.Tests.Services
         [Fact]
         public async Task GetByIdAsync_GenreExists_ReturnsMappedDto()
         {
-            var genre = new Genre { Id = 1, Name = "Sci-Fi" };
+            var genre = new Genre { Id = 1, Title = GenreTitle.ScienceFiction };
             _genreRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(genre);
 
             var result = await _sut.GetByIdAsync(1);
 
             result.Should().NotBeNull();
-            result!.Name.Should().Be("Sci-Fi");
+            result!.Title.Should().Be(GenreTitle.ScienceFiction);
         }
 
         [Fact]
@@ -71,13 +72,13 @@ namespace MovieLogger.Service.Tests.Services
         [Fact]
         public async Task CreateAsync_MapsDtoAddsToRepositoryAndReturnsMappedResponse()
         {
-            var dto = new CreateGenreDto { Name = "Sci-Fi" };
+            var dto = new CreateGenreDto { Title = GenreTitle.ScienceFiction };
 
             var result = await _sut.CreateAsync(dto);
 
-            result.Name.Should().Be("Sci-Fi");
+            result.Title.Should().Be(GenreTitle.ScienceFiction);
             await _genreRepository.Received(1).AddAsync(
-                Arg.Is<Genre>(g => g.Name == "Sci-Fi"),
+                Arg.Is<Genre>(g => g.Title == GenreTitle.ScienceFiction),
                 Arg.Any<CancellationToken>());
         }
 
@@ -85,7 +86,7 @@ namespace MovieLogger.Service.Tests.Services
         public async Task UpdateAsync_GenreNotFound_ReturnsFalseWithoutUpdating()
         {
             _genreRepository.GetByIdAsync(99, Arg.Any<CancellationToken>()).Returns((Genre?)null);
-            var dto = new UpdateGenreDto { Name = "New Name" };
+            var dto = new UpdateGenreDto { Title = GenreTitle.Comedy };
 
             var result = await _sut.UpdateAsync(99, dto);
 
@@ -96,14 +97,14 @@ namespace MovieLogger.Service.Tests.Services
         [Fact]
         public async Task UpdateAsync_GenreExists_MutatesEntityAndPersists()
         {
-            var existingGenre = new Genre { Id = 1, Name = "Old Name" };
+            var existingGenre = new Genre { Id = 4, Title = GenreTitle.Comedy };
             _genreRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingGenre);
-            var dto = new UpdateGenreDto { Name = "New Name" };
+            var dto = new UpdateGenreDto { Title = GenreTitle.Comedy };
 
             var result = await _sut.UpdateAsync(1, dto);
 
             result.Should().BeTrue();
-            existingGenre.Name.Should().Be("New Name");
+            existingGenre.Title.Should().Be(GenreTitle.Comedy);
             await _genreRepository.Received(1).UpdateAsync(existingGenre, Arg.Any<CancellationToken>());
         }
 

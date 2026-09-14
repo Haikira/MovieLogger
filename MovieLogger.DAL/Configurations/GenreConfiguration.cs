@@ -8,11 +8,7 @@ namespace MovieLogger.DAL.Configurations
     {
         public void Configure(EntityTypeBuilder<Genre> builder)
         {
-            builder.Property(g => g.Name)
-                .IsRequired()
-                .HasMaxLength(100);
-
-            builder.HasIndex(g => g.Name)
+            builder.HasIndex(g => g.Title)
                 .IsUnique();
         }
     }
