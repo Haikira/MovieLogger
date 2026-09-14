@@ -13,6 +13,11 @@ namespace MovieLogger.Service.Extensions
 
             services.AddScoped<IMovieService, MovieService>();
             services.AddScoped<IGenreService, GenreService>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IMovieWatchService, MovieWatchService>();
+            services.AddScoped<IMovieListService, MovieListService>();
+            services.AddScoped<IUserMovieService, UserMovieService>();
+            services.AddScoped<IListMovieService, ListMovieService>();
 
             return services;
         }
