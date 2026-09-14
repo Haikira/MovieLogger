@@ -8,7 +8,7 @@ namespace MovieLogger.Service.Dtos.Movies
 
         public string Title { get; set; } = string.Empty;
 
-        public int ReleaseYear { get; set; }
+        public DateOnly ReleaseDate { get; set; }
 
         public string? Director { get; set; }
 

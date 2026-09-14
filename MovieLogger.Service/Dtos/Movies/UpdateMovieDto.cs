@@ -8,8 +8,8 @@ namespace MovieLogger.Service.Dtos.Movies
         [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
 
-        [Range(1888, 9999)]
-        public int ReleaseYear { get; set; }
+        [Range(typeof(DateOnly), "1888-01-01", "9999-12-31")]
+        public DateOnly ReleaseDate { get; set; }
 
         [MaxLength(200)]
         public string? Director { get; set; }

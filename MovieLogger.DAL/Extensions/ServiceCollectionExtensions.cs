@@ -16,6 +16,11 @@ namespace MovieLogger.DAL.Extensions
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IMovieRepository, MovieRepository>();
             services.AddScoped<IGenreRepository, GenreRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IMovieWatchRepository, MovieWatchRepository>();
+            services.AddScoped<IMovieListRepository, MovieListRepository>();
+            services.AddScoped<IUserMovieRepository, UserMovieRepository>();
+            services.AddScoped<IListMovieRepository, ListMovieRepository>();
 
             return services;
         }

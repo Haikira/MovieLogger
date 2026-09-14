@@ -9,6 +9,12 @@ namespace MovieLogger.DAL
 
         public DbSet<Genre> Genres => Set<Genre>();
 
+        public DbSet<User> Users => Set<User>();
+
+        public DbSet<MovieWatch> MovieWatches => Set<MovieWatch>();
+
+        public DbSet<MovieList> Lists => Set<MovieList>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(MovieLoggerDbContext).Assembly);
