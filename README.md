@@ -56,7 +56,7 @@ erDiagram
     }
     GENRE {
         int Id PK
-        string Name
+        enum Title
     }
     MOVIEGENRE {
         int MovieId PK,FK
