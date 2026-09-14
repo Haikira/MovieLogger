@@ -35,6 +35,7 @@ Key architectural decisions are documented as ADRs in [`docs/adr`](docs/adr):
 - [ADR-007: Use specialised repositories for entity-specific queries](docs/adr/ADR-007-use-specialised-repositories-for-entity-specific-queries.md)
 - [ADR-008: Keep repository abstractions in the Service layer](docs/adr/ADR-008-keep-repository-abstractions-in-the-service-layer.md)
 - [ADR-009: Use AutoMapper](docs/adr/ADR-009-use-automapper.md)
+- [ADR-010: Separate user movie status from movie watch history](docs/adr/ADR-010-separate-user-movie-status-from-movie-watch-history.md)
 
 ## Entity Relationship Diagram
 
