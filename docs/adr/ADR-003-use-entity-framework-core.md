@@ -7,7 +7,7 @@ Accepted
 MovieLogger needs to persist and query relational data (movies, genres, and the relationship between them) from .NET code. The team wanted a mature, well-supported ORM with first-class .NET/ASP.NET Core integration, migration tooling, and support for multiple database providers so the same data access code could target different databases across environments.
 
 ## Decision
-Use Entity Framework Core as the ORM, isolated inside the `MovieLogger.DAL` project. `MovieLoggerDbContext` (`MovieLogger.DAL\MovieLoggerDbContext.cs`) defines the model, entity configurations, and change tracking; schema changes are managed through EF Core migrations under `MovieLogger.DAL\Migrations\` (e.g. `20260910135636_InitialCreate.cs`). The project references `Microsoft.EntityFrameworkCore.Sqlite` and `Microsoft.EntityFrameworkCore.Design` for the current provider and design-time tooling.
+Use Entity Framework Core as the ORM, isolated inside the `MovieLogger.DAL` project. `MovieLoggerDbContext` (`server\src\MovieLogger.DAL\MovieLoggerDbContext.cs`) defines the model, entity configurations, and change tracking; schema changes are managed through EF Core migrations under `server\src\MovieLogger.DAL\Migrations\` (e.g. `20260910135636_InitialCreate.cs`). The project references `Microsoft.EntityFrameworkCore.Sqlite` and `Microsoft.EntityFrameworkCore.Design` for the current provider and design-time tooling.
 
 ## Consequences
 - Gets code-first modeling, LINQ-based querying, change tracking, and migration generation/versioning out of the box.

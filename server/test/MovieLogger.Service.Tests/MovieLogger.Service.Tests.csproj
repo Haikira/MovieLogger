@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MovieLogger.Service\MovieLogger.Service.csproj" />
+    <ProjectReference Include="..\..\src\MovieLogger.Service\MovieLogger.Service.csproj" />
   </ItemGroup>
 
 </Project>

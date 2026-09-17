@@ -7,7 +7,7 @@ Accepted
 Repository interfaces (`IRepository<T>`, `IMovieRepository`, `IGenreRepository`) need to live in one project, with implementations (`Repository<T>`, `MovieRepository`, `GenreRepository`) in another. Where the interfaces live determines which projects can depend on persistence abstractions without depending on EF Core or the DAL's concrete types.
 
 ## Decision
-Define repository interfaces in `MovieLogger.Service\Repositories\`, not in `MovieLogger.DAL`. `MovieLogger.DAL` implements these interfaces but the interfaces themselves are owned by the Service layer, which is the only layer that consumes them directly. Confirmed in code: `MoviesController` (`MovieLogger.Api\Controllers\MoviesController.cs`) injects only `IMovieService`, never a repository type, and `MovieService` (`MovieLogger.Service\Services\MovieService.cs`) injects `IMovieRepository`/`IGenreRepository` directly.
+Define repository interfaces in `server\src\MovieLogger.Service\Repositories\`, not in `MovieLogger.DAL`. `MovieLogger.DAL` implements these interfaces but the interfaces themselves are owned by the Service layer, which is the only layer that consumes them directly. Confirmed in code: `MoviesController` (`server\src\MovieLogger.Api\Controllers\MoviesController.cs`) injects only `IMovieService`, never a repository type, and `MovieService` (`server\src\MovieLogger.Service\Services\MovieService.cs`) injects `IMovieRepository`/`IGenreRepository` directly.
 
 ## Consequences
 - `MovieLogger.Api` never needs to reference repository or DAL types — its dependency surface stays limited to the Service layer's service interfaces.
