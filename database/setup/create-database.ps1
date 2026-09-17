@@ -5,7 +5,7 @@
 # before running `flyway migrate`. Idempotent: safe to re-run if the database already exists.
 #
 # Uses Windows Integrated Authentication against the local SQL Server instance, matching
-# database/flyway.conf and MovieLogger.Api/appsettings.json.
+# database/flyway.conf and server/src/MovieLogger.Api/appsettings.json.
 
 $ErrorActionPreference = 'Stop'
 

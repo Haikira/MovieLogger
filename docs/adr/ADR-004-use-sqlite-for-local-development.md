@@ -7,7 +7,7 @@ Accepted
 The project needs a concrete database provider to run against during development. It should require no external database server installation or configuration so that any contributor can clone the repo and run the API immediately, with EF Core migrations able to create the schema on demand.
 
 ## Decision
-Use SQLite, via the `Microsoft.EntityFrameworkCore.Sqlite` package in `MovieLogger.DAL`. The provider is registered with `options.UseSqlite(...)` in `MovieLogger.DAL\Extensions\ServiceCollectionExtensions.cs`, using the connection string `"Data Source=movielogger.db"` defined under `ConnectionStrings:MovieLoggerDb` in `MovieLogger.Api\appsettings.json`. `appsettings.Development.json` has no override, so this same file-based SQLite database is currently used for local development.
+Use SQLite, via the `Microsoft.EntityFrameworkCore.Sqlite` package in `MovieLogger.DAL`. The provider is registered with `options.UseSqlite(...)` in `server\src\MovieLogger.DAL\Extensions\ServiceCollectionExtensions.cs`, using the connection string `"Data Source=movielogger.db"` defined under `ConnectionStrings:MovieLoggerDb` in `server\src\MovieLogger.Api\appsettings.json`. `appsettings.Development.json` has no override, so this same file-based SQLite database is currently used for local development.
 
 ## Consequences
 - Zero-setup local development: no database server to install, configure, or run — the `.db` file is created locally from migrations.

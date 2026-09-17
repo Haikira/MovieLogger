@@ -18,7 +18,7 @@ Flyway needs a JVM available (bundled with recent Flyway CLI distributions; othe
 
 ## Local connection setup (Windows Integrated Auth)
 
-The local SQL Server instance uses Windows Integrated Authentication, the same as EF Core's runtime connection string (`MovieLogger.Api/appsettings.json`). `database/flyway.conf` is configured accordingly:
+The local SQL Server instance uses Windows Integrated Authentication, the same as EF Core's runtime connection string (`server/src/MovieLogger.Api/appsettings.json`). `database/flyway.conf` is configured accordingly:
 
 ```
 flyway.url=jdbc:sqlserver://localhost;databaseName=MovieLoggerDb;integratedSecurity=true;trustServerCertificate=true;
@@ -63,5 +63,5 @@ Other useful commands:
 
 1. Add a new file to `database/migrations/` named `V{next}__description.sql`, where `{next}` is one greater than the highest existing version.
 2. Write forward-only T-SQL — there is no corresponding "down" migration; a schema change is reverted, if ever needed, by writing another forward migration.
-3. If the change affects columns/relationships EF Core queries against, update the matching `IEntityTypeConfiguration<T>` in `MovieLogger.DAL/Configurations/` (and the entity in `MovieLogger.Service/Entities/`) to match — Flyway and EF's model are no longer kept in sync automatically.
+3. If the change affects columns/relationships EF Core queries against, update the matching `IEntityTypeConfiguration<T>` in `server/src/MovieLogger.DAL/Configurations/` (and the entity in `server/src/MovieLogger.Service/Entities/`) to match — Flyway and EF's model are no longer kept in sync automatically.
 4. Seed/reference data changes go in their own migration file, separate from schema changes, and should be written idempotently (e.g. `WHERE NOT EXISTS`) so they're safe if ever re-run outside Flyway's normal history-tracked `migrate` flow.

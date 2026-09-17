@@ -11,5 +11,5 @@ Adopt the Repository pattern: persistence access is expressed through repository
 
 ## Consequences
 - Services depend on abstractions (`IRepository<T>`, `IMovieRepository`, `IGenreRepository`), not on EF Core or `MovieLoggerDbContext`, so business logic can be unit-tested with fakes/mocks of the repositories.
-- Persistence details (querying, `Include`s, `DbSet` access) are centralized in `MovieLogger.DAL\Repositories\`, keeping the Service layer free of EF Core-specific code.
+- Persistence details (querying, `Include`s, `DbSet` access) are centralized in `server\src\MovieLogger.DAL\Repositories\`, keeping the Service layer free of EF Core-specific code.
 - Adds an abstraction layer between services and EF Core; simple pass-through CRUD calls have an extra indirection cost, which is offset by the generic repository (ADR-006) so it isn't repeated per entity.
