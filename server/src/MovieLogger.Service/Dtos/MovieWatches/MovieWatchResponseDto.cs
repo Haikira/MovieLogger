@@ -8,10 +8,14 @@ namespace MovieLogger.Service.Dtos.MovieWatches
 
         public int MovieId { get; set; }
 
-        public DateTime WatchedAt { get; set; }
+        public DateTime DateWatched { get; set; }
 
-        public decimal? Score { get; set; }
+        public int? Rating { get; set; }
 
-        public string? Review { get; set; }
+        public string? Notes { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
     }
 }

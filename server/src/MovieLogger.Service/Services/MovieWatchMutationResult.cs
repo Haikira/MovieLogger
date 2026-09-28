@@ -5,7 +5,6 @@ namespace MovieLogger.Service.Services
     public enum MovieWatchMutationOutcome
     {
         Success,
-        InvalidUserId,
         InvalidMovieId
     }
 
@@ -17,9 +16,6 @@ namespace MovieLogger.Service.Services
 
         public static MovieWatchMutationResult Success(MovieWatchResponseDto movieWatch) =>
             new() { Outcome = MovieWatchMutationOutcome.Success, MovieWatch = movieWatch };
-
-        public static MovieWatchMutationResult InvalidUser() =>
-            new() { Outcome = MovieWatchMutationOutcome.InvalidUserId };
 
         public static MovieWatchMutationResult InvalidMovie() =>
             new() { Outcome = MovieWatchMutationOutcome.InvalidMovieId };

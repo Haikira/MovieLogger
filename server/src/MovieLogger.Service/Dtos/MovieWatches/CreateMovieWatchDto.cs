@@ -1,19 +1,19 @@
 using System.ComponentModel.DataAnnotations;
+using MovieLogger.Service.Dtos.Validation;
 
 namespace MovieLogger.Service.Dtos.MovieWatches
 {
     public class CreateMovieWatchDto
     {
-        public int UserId { get; set; }
-
         public int MovieId { get; set; }
 
-        public DateTime WatchedAt { get; set; }
+        [NotInFuture]
+        public DateTime DateWatched { get; set; }
 
-        [Range(typeof(decimal), "0", "10")]
-        public decimal? Score { get; set; }
+        [Range(1, 5)]
+        public int? Rating { get; set; }
 
-        [MaxLength(4000)]
-        public string? Review { get; set; }
+        [MaxLength(500)]
+        public string? Notes { get; set; }
     }
 }

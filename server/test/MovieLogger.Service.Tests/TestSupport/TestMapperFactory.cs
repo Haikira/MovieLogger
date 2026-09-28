@@ -15,6 +15,7 @@ namespace MovieLogger.Service.Tests.TestSupport
                 cfg.AddProfile<UserProfile>();
                 cfg.AddProfile<MovieWatchProfile>();
                 cfg.AddProfile<MovieListProfile>();
+                cfg.AddProfile<WatchlistItemProfile>();
             }, NullLoggerFactory.Instance);
 
             return configuration.CreateMapper();

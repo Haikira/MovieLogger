@@ -12,10 +12,14 @@ namespace MovieLogger.Service.Entities
 
         public Movie Movie { get; set; } = null!;
 
-        public DateTime WatchedAt { get; set; }
+        public DateTime DateWatched { get; set; }
 
-        public decimal? Score { get; set; }
+        public int? Rating { get; set; }
 
-        public string? Review { get; set; }
+        public string? Notes { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -6,7 +6,7 @@ namespace MovieLogger.Service.Dtos.Users
     {
         [Required]
         [MaxLength(100)]
-        public string Username { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]

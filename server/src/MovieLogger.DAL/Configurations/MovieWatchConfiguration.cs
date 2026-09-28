@@ -8,14 +8,18 @@ namespace MovieLogger.DAL.Configurations
     {
         public void Configure(EntityTypeBuilder<MovieWatch> builder)
         {
-            builder.Property(w => w.WatchedAt)
+            builder.Property(w => w.DateWatched)
                 .IsRequired();
 
-            builder.Property(w => w.Score)
-                .HasPrecision(3, 1);
+            builder.Property(w => w.Notes)
+                .HasMaxLength(500);
 
-            builder.Property(w => w.Review)
-                .HasMaxLength(4000);
+            builder.Property(w => w.CreatedAt)
+                .IsRequired();
+
+            builder.ToTable(t => t.HasCheckConstraint("CK_MovieWatches_Rating", "[Rating] IS NULL OR [Rating] BETWEEN 1 AND 5"));
+
+            builder.HasIndex(w => w.DateWatched);
 
             builder.HasOne(w => w.User)
                 .WithMany(u => u.MovieWatches)

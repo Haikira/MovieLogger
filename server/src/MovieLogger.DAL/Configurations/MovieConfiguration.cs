@@ -12,14 +12,29 @@ namespace MovieLogger.DAL.Configurations
                 .IsRequired()
                 .HasMaxLength(200);
 
-            builder.Property(m => m.ReleaseDate)
+            builder.Property(m => m.ReleaseYear)
                 .IsRequired();
+
+            builder.Property(m => m.RuntimeMinutes);
 
             builder.Property(m => m.Director)
                 .HasMaxLength(200);
 
-            builder.Property(m => m.Description)
+            builder.Property(m => m.Synopsis)
                 .HasMaxLength(2000);
+
+            builder.Property(m => m.PosterImageUrl)
+                .HasMaxLength(2000);
+
+            builder.Property(m => m.CreatedAt)
+                .IsRequired();
+
+            builder.HasIndex(m => m.Title);
+
+            builder.HasOne(m => m.CreatedBy)
+                .WithMany()
+                .HasForeignKey(m => m.CreatedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             builder.HasMany(m => m.Genres)
                 .WithMany(g => g.Movies)

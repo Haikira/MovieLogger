@@ -8,7 +8,7 @@ namespace MovieLogger.DAL.Configurations
     {
         public void Configure(EntityTypeBuilder<User> builder)
         {
-            builder.Property(u => u.Username)
+            builder.Property(u => u.DisplayName)
                 .IsRequired()
                 .HasMaxLength(100);
 
@@ -16,11 +16,12 @@ namespace MovieLogger.DAL.Configurations
                 .IsRequired()
                 .HasMaxLength(256);
 
+            builder.Property(u => u.PasswordHash)
+                .IsRequired()
+                .HasMaxLength(256);
+
             builder.Property(u => u.CreatedAt)
                 .IsRequired();
-
-            builder.HasIndex(u => u.Username)
-                .IsUnique();
 
             builder.HasIndex(u => u.Email)
                 .IsUnique();

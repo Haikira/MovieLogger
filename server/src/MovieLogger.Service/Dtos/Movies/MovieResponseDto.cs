@@ -8,11 +8,19 @@ namespace MovieLogger.Service.Dtos.Movies
 
         public string Title { get; set; } = string.Empty;
 
-        public DateOnly ReleaseDate { get; set; }
+        public int ReleaseYear { get; set; }
+
+        public int? RuntimeMinutes { get; set; }
 
         public string? Director { get; set; }
 
-        public string? Description { get; set; }
+        public string? Synopsis { get; set; }
+
+        public string? PosterImageUrl { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public int? CreatedByUserId { get; set; }
 
         public List<GenreResponseDto> Genres { get; set; } = [];
     }

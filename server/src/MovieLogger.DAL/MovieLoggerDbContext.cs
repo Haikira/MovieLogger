@@ -15,6 +15,8 @@ namespace MovieLogger.DAL
 
         public DbSet<MovieList> Lists => Set<MovieList>();
 
+        public DbSet<WatchlistItem> WatchlistItems => Set<WatchlistItem>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(MovieLoggerDbContext).Assembly);

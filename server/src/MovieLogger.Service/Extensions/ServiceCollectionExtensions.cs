@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using MovieLogger.Service.Interfaces;
 using MovieLogger.Service.Mapping;
+using MovieLogger.Service.Security;
 using MovieLogger.Service.Services;
 
 namespace MovieLogger.Service.Extensions
@@ -18,6 +19,12 @@ namespace MovieLogger.Service.Extensions
             services.AddScoped<IMovieListService, MovieListService>();
             services.AddScoped<IUserMovieService, UserMovieService>();
             services.AddScoped<IListMovieService, ListMovieService>();
+            services.AddScoped<IWatchlistService, WatchlistService>();
+            services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<IAuthService, AuthService>();
+
+            services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
             return services;
         }

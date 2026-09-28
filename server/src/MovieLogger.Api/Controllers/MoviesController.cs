@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using MovieLogger.Api.Security;
+using MovieLogger.Service.Dtos.Common;
 using MovieLogger.Service.Dtos.Movies;
 using MovieLogger.Service.Interfaces;
 using MovieLogger.Service.Services;
@@ -10,22 +13,23 @@ namespace MovieLogger.Api.Controllers
     public class MoviesController(IMovieService movieService) : ControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<MovieResponseDto>>> GetAll(CancellationToken cancellationToken)
+        public async Task<ActionResult<PagedResult<MovieResponseDto>>> Search([FromQuery] MovieSearchQueryDto query, CancellationToken cancellationToken)
         {
-            return Ok(await movieService.GetAllAsync(cancellationToken));
+            return Ok(await movieService.SearchAsync(query, cancellationToken));
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<MovieResponseDto>> GetById(int id, CancellationToken cancellationToken)
+        public async Task<ActionResult<MovieDetailsResponseDto>> GetById(int id, CancellationToken cancellationToken)
         {
-            var movie = await movieService.GetByIdAsync(id, cancellationToken);
-            return movie is null ? NotFound() : Ok(movie);
+            var details = await movieService.GetDetailsAsync(id, User.GetUserIdOrDefault(), cancellationToken);
+            return details is null ? NotFound() : Ok(details);
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<MovieResponseDto>> Create(CreateMovieDto dto, CancellationToken cancellationToken)
         {
-            var result = await movieService.CreateAsync(dto, cancellationToken);
+            var result = await movieService.CreateAsync(dto, User.GetUserId(), cancellationToken);
             return result.Outcome switch
             {
                 MovieMutationOutcome.Success => CreatedAtAction(nameof(GetById), new { id = result.Movie!.Id }, result.Movie),
@@ -34,6 +38,7 @@ namespace MovieLogger.Api.Controllers
             };
         }
 
+        [Authorize]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, UpdateMovieDto dto, CancellationToken cancellationToken)
         {
@@ -47,6 +52,7 @@ namespace MovieLogger.Api.Controllers
             };
         }
 
+        [Authorize]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {

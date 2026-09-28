@@ -9,7 +9,6 @@ namespace MovieLogger.Service.Mapping
         public UserProfile()
         {
             CreateMap<User, UserResponseDto>();
-            CreateMap<CreateUserDto, User>();
             CreateMap<UpdateUserDto, User>();
 
             CreateMap<UserMovie, UserMovieResponseDto>();

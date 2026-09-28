@@ -6,11 +6,21 @@ namespace MovieLogger.Service.Entities
 
         public string Title { get; set; } = string.Empty;
 
-        public DateOnly ReleaseDate { get; set; }
+        public int ReleaseYear { get; set; }
+
+        public int? RuntimeMinutes { get; set; }
 
         public string? Director { get; set; }
 
-        public string? Description { get; set; }
+        public string? Synopsis { get; set; }
+
+        public string? PosterImageUrl { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public int? CreatedByUserId { get; set; }
+
+        public User? CreatedBy { get; set; }
 
         public ICollection<Genre> Genres { get; set; } = new List<Genre>();
 
@@ -19,5 +29,7 @@ namespace MovieLogger.Service.Entities
         public ICollection<MovieWatch> MovieWatches { get; set; } = new List<MovieWatch>();
 
         public ICollection<ListMovie> ListMovies { get; set; } = new List<ListMovie>();
+
+        public ICollection<WatchlistItem> WatchlistItems { get; set; } = new List<WatchlistItem>();
     }
 }
