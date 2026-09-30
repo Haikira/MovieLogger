@@ -14,6 +14,7 @@
 - MovieLogger.Service contains business logic and application services
 - MovieLogger.DAL contains database access and Entity Framework Core concerns
 - MovieLogger.Service.Tests contains unit tests for the service layer
+- MovieLogger.Api.Tests contains API integration tests (WebApplicationFactory against a dedicated SQL Server test database; see docs/testing.md)
 - Use dependency injection throughout the application
 - Keep controllers thin; business logic belongs in the service layer
 - Keep database access within the DAL

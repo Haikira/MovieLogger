@@ -9,10 +9,10 @@ namespace MovieLogger.Service.Services
         IMovieListRepository movieListRepository,
         IMovieRepository movieRepository) : IListMovieService
     {
-        public async Task<AddMovieToListResult> AddAsync(int listId, int movieId, CancellationToken cancellationToken = default)
+        public async Task<AddMovieToListResult> AddAsync(int listId, int movieId, int userId, CancellationToken cancellationToken = default)
         {
             var list = await movieListRepository.GetByIdAsync(listId, cancellationToken);
-            if (list is null)
+            if (list is null || list.UserId != userId)
             {
                 return AddMovieToListResult.ListNotFound();
             }
@@ -39,9 +39,15 @@ namespace MovieLogger.Service.Services
             return AddMovieToListResult.Success();
         }
 
-        public Task<bool> RemoveAsync(int listId, int movieId, CancellationToken cancellationToken = default)
+        public async Task<bool> RemoveAsync(int listId, int movieId, int userId, CancellationToken cancellationToken = default)
         {
-            return listMovieRepository.DeleteAsync(listId, movieId, cancellationToken);
+            var list = await movieListRepository.GetByIdAsync(listId, cancellationToken);
+            if (list is null || list.UserId != userId)
+            {
+                return false;
+            }
+
+            return await listMovieRepository.DeleteAsync(listId, movieId, cancellationToken);
         }
     }
 }

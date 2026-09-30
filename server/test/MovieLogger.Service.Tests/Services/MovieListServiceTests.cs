@@ -22,7 +22,7 @@ namespace MovieLogger.Service.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllAsync_ReturnsListsMappedToResponseDtosWithMovies()
+        public async Task GetMineAsync_ReturnsUsersListsMappedToResponseDtosWithMovies()
         {
             var movie = new Movie { Id = 1, Title = "Arrival" };
             var lists = new List<MovieList>
@@ -35,34 +35,44 @@ namespace MovieLogger.Service.Tests.Services
                     ListMovies = [new ListMovie { ListId = 1, MovieId = 1, Movie = movie, AddedAt = new DateTime(2024, 1, 1) }]
                 },
             };
-            _movieListRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(lists);
+            _movieListRepository.GetByUserIdAsync(1, Arg.Any<CancellationToken>()).Returns(lists);
 
-            var result = await _sut.GetAllAsync();
+            var result = await _sut.GetMineAsync(userId: 1);
 
             result.Should().HaveCount(1);
             result[0].Movies.Should().ContainSingle(m => m.Title == "Arrival");
         }
 
         [Fact]
-        public async Task GetAllAsync_RepositoryReturnsEmpty_ReturnsEmptyList()
+        public async Task GetMineAsync_RepositoryReturnsEmpty_ReturnsEmptyList()
         {
-            _movieListRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<MovieList>());
+            _movieListRepository.GetByUserIdAsync(1, Arg.Any<CancellationToken>()).Returns(new List<MovieList>());
 
-            var result = await _sut.GetAllAsync();
+            var result = await _sut.GetMineAsync(userId: 1);
 
             result.Should().BeEmpty();
         }
 
         [Fact]
-        public async Task GetByIdAsync_ListExists_ReturnsMappedDto()
+        public async Task GetByIdAsync_ListExistsAndOwnedByUser_ReturnsMappedDto()
         {
             var list = new MovieList { Id = 1, UserId = 1, Name = "Favourites" };
             _movieListRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(list);
 
-            var result = await _sut.GetByIdAsync(1);
+            var result = await _sut.GetByIdAsync(1, userId: 1);
 
             result.Should().NotBeNull();
             result!.Name.Should().Be("Favourites");
+        }
+
+        [Fact]
+        public async Task GetByIdAsync_ListOwnedByAnotherUser_ReturnsNull()
+        {
+            _movieListRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(new MovieList { Id = 1, UserId = 2 });
+
+            var result = await _sut.GetByIdAsync(1, userId: 1);
+
+            result.Should().BeNull();
         }
 
         [Fact]
@@ -70,33 +80,34 @@ namespace MovieLogger.Service.Tests.Services
         {
             _movieListRepository.GetByIdAsync(99, Arg.Any<CancellationToken>()).Returns((MovieList?)null);
 
-            var result = await _sut.GetByIdAsync(99);
+            var result = await _sut.GetByIdAsync(99, userId: 1);
 
             result.Should().BeNull();
         }
 
         [Fact]
-        public async Task CreateAsync_ValidUserId_SetsCreatedAtAddsAndReturnsSuccess()
+        public async Task CreateAsync_ValidUser_AssignsUserSetsCreatedAtAddsAndReturnsSuccess()
         {
             _userRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(new User { Id = 1 });
-            var dto = new CreateMovieListDto { UserId = 1, Name = "Favourites" };
+            var dto = new CreateMovieListDto { Name = "Favourites" };
 
-            var result = await _sut.CreateAsync(dto);
+            var result = await _sut.CreateAsync(dto, userId: 1);
 
             result.Outcome.Should().Be(MovieListMutationOutcome.Success);
             result.MovieList!.Name.Should().Be("Favourites");
+            result.MovieList.UserId.Should().Be(1);
             await _movieListRepository.Received(1).AddAsync(
-                Arg.Is<MovieList>(l => l.Name == "Favourites" && l.CreatedAt != default),
+                Arg.Is<MovieList>(l => l.Name == "Favourites" && l.UserId == 1 && l.CreatedAt != default),
                 Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public async Task CreateAsync_InvalidUserId_ReturnsInvalidUserIdWithoutAdding()
+        public async Task CreateAsync_UserDoesNotExist_ReturnsInvalidUserIdWithoutAdding()
         {
             _userRepository.GetByIdAsync(99, Arg.Any<CancellationToken>()).Returns((User?)null);
-            var dto = new CreateMovieListDto { UserId = 99, Name = "Favourites" };
+            var dto = new CreateMovieListDto { Name = "Favourites" };
 
-            var result = await _sut.CreateAsync(dto);
+            var result = await _sut.CreateAsync(dto, userId: 99);
 
             result.Outcome.Should().Be(MovieListMutationOutcome.InvalidUserId);
             await _movieListRepository.DidNotReceive().AddAsync(Arg.Any<MovieList>(), Arg.Any<CancellationToken>());
@@ -108,45 +119,74 @@ namespace MovieLogger.Service.Tests.Services
             _movieListRepository.GetByIdAsync(99, Arg.Any<CancellationToken>()).Returns((MovieList?)null);
             var dto = new UpdateMovieListDto { Name = "New Name" };
 
-            var result = await _sut.UpdateAsync(99, dto);
+            var result = await _sut.UpdateAsync(99, dto, userId: 1);
 
             result.Should().BeFalse();
             await _movieListRepository.DidNotReceive().UpdateAsync(Arg.Any<MovieList>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public async Task UpdateAsync_ListExists_UpdatesNameDescriptionAndPersists()
+        public async Task UpdateAsync_ListOwnedByAnotherUser_ReturnsFalseWithoutUpdating()
+        {
+            var existingList = new MovieList { Id = 1, UserId = 2, Name = "Old Name" };
+            _movieListRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingList);
+            var dto = new UpdateMovieListDto { Name = "New Name" };
+
+            var result = await _sut.UpdateAsync(1, dto, userId: 1);
+
+            result.Should().BeFalse();
+            existingList.Name.Should().Be("Old Name");
+            await _movieListRepository.DidNotReceive().UpdateAsync(Arg.Any<MovieList>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task UpdateAsync_ListOwnedByUser_UpdatesNameDescriptionAndPersists()
         {
             var existingList = new MovieList { Id = 1, UserId = 1, Name = "Old Name" };
             _movieListRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingList);
             var dto = new UpdateMovieListDto { Name = "New Name", Description = "Updated" };
 
-            var result = await _sut.UpdateAsync(1, dto);
+            var result = await _sut.UpdateAsync(1, dto, userId: 1);
 
             result.Should().BeTrue();
             existingList.Name.Should().Be("New Name");
             existingList.Description.Should().Be("Updated");
+            existingList.UserId.Should().Be(1);
             await _movieListRepository.Received(1).UpdateAsync(existingList, Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public async Task DeleteAsync_RepositoryReturnsTrue_ReturnsTrue()
+        public async Task DeleteAsync_ListOwnedByUser_DeletesAndReturnsTrue()
         {
+            _movieListRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(new MovieList { Id = 1, UserId = 1 });
             _movieListRepository.DeleteAsync(1, Arg.Any<CancellationToken>()).Returns(true);
 
-            var result = await _sut.DeleteAsync(1);
+            var result = await _sut.DeleteAsync(1, userId: 1);
 
             result.Should().BeTrue();
+            await _movieListRepository.Received(1).DeleteAsync(1, Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public async Task DeleteAsync_RepositoryReturnsFalse_ReturnsFalse()
+        public async Task DeleteAsync_ListOwnedByAnotherUser_ReturnsFalseWithoutDeleting()
         {
-            _movieListRepository.DeleteAsync(99, Arg.Any<CancellationToken>()).Returns(false);
+            _movieListRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(new MovieList { Id = 1, UserId = 2 });
 
-            var result = await _sut.DeleteAsync(99);
+            var result = await _sut.DeleteAsync(1, userId: 1);
 
             result.Should().BeFalse();
+            await _movieListRepository.DidNotReceive().DeleteAsync(Arg.Any<int>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ListNotFound_ReturnsFalse()
+        {
+            _movieListRepository.GetByIdAsync(99, Arg.Any<CancellationToken>()).Returns((MovieList?)null);
+
+            var result = await _sut.DeleteAsync(99, userId: 1);
+
+            result.Should().BeFalse();
+            await _movieListRepository.DidNotReceive().DeleteAsync(Arg.Any<int>(), Arg.Any<CancellationToken>());
         }
     }
 }

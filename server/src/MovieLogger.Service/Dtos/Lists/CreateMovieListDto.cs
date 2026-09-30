@@ -4,8 +4,6 @@ namespace MovieLogger.Service.Dtos.Lists
 {
     public class CreateMovieListDto
     {
-        public int UserId { get; set; }
-
         [Required]
         [MaxLength(200)]
         public string Name { get; set; } = string.Empty;
