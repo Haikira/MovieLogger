@@ -1,0 +1,65 @@
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.legend {
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stars {
+  display: flex;
+  gap: 4px;
+}
+
+.star {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  cursor: pointer;
+}
+
+.star:has(input:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.filled {
+  color: var(--color-primary);
+}
+
+.empty {
+  color: #adb5bd;
+}
+
+.value {
+  min-width: 36px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.error {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-danger);
+}

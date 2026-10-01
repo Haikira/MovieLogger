@@ -1,0 +1,241 @@
+.search {
+  display: flex;
+  width: 356px;
+  max-width: 100%;
+}
+
+.search > div {
+  flex: 1 1 auto;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  padding: 24px 22px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.statLabel {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.statValue {
+  margin-top: 6px;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.statDetail {
+  min-height: 1.5em;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.section {
+  margin-top: 44px;
+}
+
+.sectionHeader,
+.cardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.sectionLink {
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sectionLink:hover {
+  text-decoration: underline;
+}
+
+.posters {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.posterCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.posterLink {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  text-decoration: none;
+}
+
+.posterLink:hover .posterTitle {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.posterTitle {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.posterMeta {
+  margin-bottom: 4px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.bottomRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 28px;
+  margin-top: 36px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.cardMeta {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.upNext {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upNextItem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.upNextText {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.upNextTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.upNextTitle:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.upNextMeta {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.genres {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.genre {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) 36px;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+}
+
+.genreName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.genreTrack {
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-placeholder);
+  overflow: hidden;
+}
+
+.genreBar {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+}
+
+.genreCount {
+  font-weight: 700;
+  text-align: right;
+}
+
+@media (max-width: 1200px) {
+  .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .posters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .bottomRow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .stats,
+  .posters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

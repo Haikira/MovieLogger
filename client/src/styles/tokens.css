@@ -1,0 +1,43 @@
+/* Design tokens taken from the Figma design (docs/design/MovieLogger.pdf). */
+:root {
+  --color-primary: #f97316;
+  --color-primary-hover: #ea580c;
+  --color-primary-active: #c2410c;
+  --color-primary-tint: #fff4ed;
+  /* Orange used for text links. The Figma orange is below WCAG AA contrast for small text on
+     white (about 2.8:1); see client/README.md. Changing this token to #c2410c (5.2:1) fixes it. */
+  --color-primary-text: #f97316;
+
+  --color-danger: #dc3545;
+  --color-danger-hover: #bb2d3b;
+  --color-danger-tint: #fdf0f1;
+  --color-success: #198754;
+  --color-success-tint: #edf7f1;
+
+  --color-page: #f8f9fa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8f9fa;
+  --color-placeholder: #e9ecef;
+  --color-border: #dee2e6;
+  --color-border-strong: #ced4da;
+
+  --color-text: #212529;
+  --color-text-secondary: #495057;
+  --color-text-muted: #6c757d;
+  --color-text-subtle: #868e96;
+  --color-icon: #6c757d;
+
+  --font-sans: 'Inter Variable', Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 999px;
+
+  --sidebar-width: 280px;
+  --page-padding: 48px;
+
+  --shadow-dialog: 0 20px 48px rgba(33, 37, 41, 0.18);
+  --focus-ring: 0 0 0 3px rgba(249, 115, 22, 0.35);
+}

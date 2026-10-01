@@ -16,6 +16,7 @@ namespace MovieLogger.DAL.Repositories
         {
             return await context.WatchlistItems
                 .Include(w => w.Movie)
+                    .ThenInclude(m => m.Genres)
                 .Where(w => w.UserId == userId)
                 .OrderByDescending(w => w.DateAdded)
                 .AsNoTracking()

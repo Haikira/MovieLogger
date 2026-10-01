@@ -1,0 +1,288 @@
+/* ---------- Logo ---------- */
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.logoLarge {
+  font-size: 38px;
+  gap: 14px;
+}
+
+/* ---------- Authenticated app shell ---------- */
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 40px 24px 40px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.sidebarLogo {
+  display: inline-flex;
+  margin-bottom: 36px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+}
+
+.nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radius-lg);
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.navLink svg {
+  color: var(--color-icon);
+}
+
+.navLink:hover {
+  background: var(--color-surface-muted);
+}
+
+.navLinkActive,
+.navLinkActive:hover {
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.navLinkActive svg {
+  color: var(--color-primary);
+}
+
+.userCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding: 12px;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-muted);
+  color: inherit;
+  text-decoration: none;
+}
+
+.userCard:hover {
+  background: var(--color-placeholder);
+}
+
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-placeholder);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.avatarLarge {
+  width: 72px;
+  height: 72px;
+  font-size: 28px;
+}
+
+.userName {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMeta {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.userText {
+  min-width: 0;
+}
+
+.main {
+  min-width: 0;
+  padding: 44px var(--page-padding) 64px;
+}
+
+.skipLink {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  background: var(--color-text);
+  color: #fff;
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skipLink:focus {
+  transform: none;
+}
+
+/* ---------- Page header ---------- */
+
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: 32px;
+}
+
+.pageTitle {
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.pageTitle:focus {
+  outline: none;
+}
+
+.pageSubtitle {
+  margin-top: 8px;
+  font-size: 17px;
+  color: var(--color-text-muted);
+}
+
+.pageActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ---------- Auth pages ---------- */
+
+.authPage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  min-height: 100vh;
+  padding: 48px 16px;
+}
+
+.authCard {
+  width: min(440px, 100%);
+  padding: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.authTitle {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.authSubtitle {
+  margin-top: 6px;
+  font-size: 17px;
+  color: var(--color-text-muted);
+}
+
+.authFooter {
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.authFooter a {
+  margin-left: 6px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.authFooter a:hover {
+  text-decoration: underline;
+}
+
+/* ---------- Small screens: the sidebar becomes a top bar ---------- */
+
+@media (max-width: 900px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    padding: 16px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .sidebarLogo {
+    margin-bottom: 12px;
+  }
+
+  .nav ul {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .navLink {
+    height: 38px;
+    padding: 0 12px;
+    font-size: 15px;
+  }
+
+  .userCard {
+    display: none;
+  }
+
+  .main {
+    --page-padding: 16px;
+    padding-top: 24px;
+  }
+
+  .pageTitle {
+    font-size: 32px;
+  }
+}

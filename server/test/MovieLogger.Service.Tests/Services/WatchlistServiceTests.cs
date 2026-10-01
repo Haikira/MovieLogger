@@ -76,6 +76,36 @@ namespace MovieLogger.Service.Tests.Services
         }
 
         [Fact]
+        public async Task GetMineAsync_MapsMovieDetailsAndGenres()
+        {
+            var movie = new Movie
+            {
+                Id = 1,
+                Title = "Past Lives",
+                ReleaseYear = 2023,
+                Director = "Celine Song",
+                RuntimeMinutes = 106,
+                PosterImageUrl = "https://example.com/past-lives.jpg",
+                Genres = [new Genre { Id = 7, Name = "Drama" }, new Genre { Id = 14, Name = "Romance" }]
+            };
+            var dateAdded = new DateTime(2026, 9, 21, 10, 0, 0, DateTimeKind.Utc);
+            _watchlistItemRepository.GetByUserIdAsync(1, Arg.Any<CancellationToken>())
+                .Returns([new WatchlistItem { Id = 3, UserId = 1, MovieId = 1, Movie = movie, DateAdded = dateAdded }]);
+
+            var item = (await _sut.GetMineAsync(1)).Should().ContainSingle().Subject;
+
+            item.Id.Should().Be(3);
+            item.MovieId.Should().Be(1);
+            item.Title.Should().Be("Past Lives");
+            item.ReleaseYear.Should().Be(2023);
+            item.Director.Should().Be("Celine Song");
+            item.RuntimeMinutes.Should().Be(106);
+            item.PosterImageUrl.Should().Be("https://example.com/past-lives.jpg");
+            item.DateAdded.Should().Be(dateAdded);
+            item.Genres.Select(g => (g.Id, g.Name)).Should().BeEquivalentTo([(7, "Drama"), (14, "Romance")]);
+        }
+
+        [Fact]
         public async Task RemoveAsync_DelegatesToRepositoryWithUserAndMovieId()
         {
             _watchlistItemRepository.DeleteAsync(1, 2, Arg.Any<CancellationToken>()).Returns(true);
