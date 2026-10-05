@@ -10,7 +10,9 @@ namespace MovieLogger.Service.Security
     {
         private const int SaltSize = 16;
         private const int SubkeySize = 32;
-        private const int Iterations = 100_000;
+        // OWASP's current recommendation for PBKDF2-HMAC-SHA256. Each hash records its own iteration count,
+        // so hashes created with an older count still verify.
+        private const int Iterations = 600_000;
         private static readonly HashAlgorithmName Algorithm = HashAlgorithmName.SHA256;
 
         public string HashPassword(string password)
