@@ -1,0 +1,16 @@
+.addPrompt {
+  font-size: 15px;
+  color: var(--color-text-muted);
+}
+
+.addPrompt a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.addPrompt a:hover {
+  text-decoration: underline;
+}

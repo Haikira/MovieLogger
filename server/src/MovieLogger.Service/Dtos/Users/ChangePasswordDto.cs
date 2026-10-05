@@ -10,6 +10,7 @@ namespace MovieLogger.Service.Dtos.Users
         [Required]
         [MinLength(8)]
         [MaxLength(100)]
+        [RegularExpression(".*[0-9].*", ErrorMessage = "Password must include at least one number.")]
         public string NewPassword { get; set; } = string.Empty;
 
         [Required]

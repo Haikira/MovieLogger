@@ -39,8 +39,14 @@ namespace MovieLogger.Api.Controllers
                 return Forbid();
             }
 
-            var updated = await userService.UpdateAsync(id, dto, cancellationToken);
-            return updated ? NoContent() : NotFound();
+            var result = await userService.UpdateAsync(id, dto, cancellationToken);
+            return result.Outcome switch
+            {
+                UpdateUserOutcome.Success => NoContent(),
+                UpdateUserOutcome.UserNotFound => NotFound(),
+                UpdateUserOutcome.DuplicateEmail => Conflict(new { message = "A user with this email already exists." }),
+                _ => BadRequest()
+            };
         }
 
         [HttpDelete("{id:int}")]

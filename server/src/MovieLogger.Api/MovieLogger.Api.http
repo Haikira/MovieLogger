@@ -1,6 +1,71 @@
 @MovieLogger.Api_HostAddress = http://localhost:5021
 
-GET {{MovieLogger.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+# Paste the "token" from the register or login response here.
+@token = paste-token-here
 
-###
+### Register a user
+POST {{MovieLogger.Api_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "displayName": "Ellen Ripley",
+  "email": "ripley@example.com",
+  "password": "Nostromo-1979",
+  "confirmPassword": "Nostromo-1979"
+}
+
+### Log in
+POST {{MovieLogger.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ripley@example.com",
+  "password": "Nostromo-1979"
+}
+
+### Current user
+GET {{MovieLogger.Api_HostAddress}}/api/users/me
+Authorization: Bearer {{token}}
+
+### Genres (anonymous)
+GET {{MovieLogger.Api_HostAddress}}/api/genres
+
+### Search the movie catalogue (anonymous)
+GET {{MovieLogger.Api_HostAddress}}/api/movies?title=alien&page=1&pageSize=20
+
+### Add a movie to the catalogue
+POST {{MovieLogger.Api_HostAddress}}/api/movies
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Alien",
+  "releaseYear": 1979,
+  "runtimeMinutes": 117,
+  "director": "Ridley Scott",
+  "genreIds": [10, 15]
+}
+
+### Log a watch
+POST {{MovieLogger.Api_HostAddress}}/api/moviewatches
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "movieId": 1,
+  "dateWatched": "2026-10-01",
+  "rating": 5,
+  "notes": "Still terrifying."
+}
+
+### My movies (one row per movie, newest watch first)
+GET {{MovieLogger.Api_HostAddress}}/api/moviewatches/my-movies?sort=DateWatchedDesc&page=1&pageSize=20
+Authorization: Bearer {{token}}
+
+### Watchlist
+GET {{MovieLogger.Api_HostAddress}}/api/watchlist
+Authorization: Bearer {{token}}
+
+### Dashboard
+GET {{MovieLogger.Api_HostAddress}}/api/dashboard
+Authorization: Bearer {{token}}

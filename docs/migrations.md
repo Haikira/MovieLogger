@@ -54,6 +54,8 @@ From the repository root, pointing Flyway at the checked-in config:
 flyway -configFiles=database/flyway.conf migrate
 ```
 
+`make database-migrate` runs exactly this command, and `make database-status` runs `info` (see [`development.md`](development.md)).
+
 Other useful commands:
 
 - `flyway -configFiles=database/flyway.conf info` — show applied/pending migrations and their status.

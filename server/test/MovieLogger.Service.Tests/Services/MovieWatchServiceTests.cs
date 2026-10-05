@@ -180,7 +180,11 @@ namespace MovieLogger.Service.Tests.Services
         [Fact]
         public async Task GetMyMoviesAsync_ForwardsUserIdAndQueryAndReturnsPagedAggregates()
         {
-            var movie = new Movie { Id = 1, Title = "Alien", ReleaseYear = 1979, Director = "Ridley Scott", RuntimeMinutes = 117 };
+            var movie = new Movie
+            {
+                Id = 1, Title = "Alien", ReleaseYear = 1979, Director = "Ridley Scott", RuntimeMinutes = 117,
+                PosterImageUrl = "https://example.com/alien.jpg"
+            };
             var aggregate = new MyMovieAggregate(movie, new DateTime(2023, 10, 31), 5, 3);
             var query = new MyMoviesQueryDto { Page = 1, PageSize = 20 };
             _movieWatchRepository.SearchMyMoviesAsync(1, query, Arg.Any<CancellationToken>())
@@ -193,6 +197,7 @@ namespace MovieLogger.Service.Tests.Services
             result.Items[0].Title.Should().Be("Alien");
             result.Items[0].TimesWatched.Should().Be(3);
             result.Items[0].LastRating.Should().Be(5);
+            result.Items[0].PosterImageUrl.Should().Be("https://example.com/alien.jpg");
         }
 
         [Fact]

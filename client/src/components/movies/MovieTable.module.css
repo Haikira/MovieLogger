@@ -1,0 +1,119 @@
+.wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.table td {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover {
+  background: #fcfcfd;
+}
+
+.colMovie {
+  width: 50%;
+}
+
+.colData {
+  width: 18%;
+}
+
+.colActions {
+  width: 1%;
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.highlight {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.movieCell {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.movieTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.movieTitle:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+}
+
+.movieMeta {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.status {
+  position: relative;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.fetching {
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.section {
+  margin-top: 32px;
+}
+
+.notice {
+  margin-bottom: 16px;
+}
+
+/* Line the "Movie" heading up with the titles, which sit after the thumbnail. */
+.table th:first-child {
+  padding-left: 68px;
+}

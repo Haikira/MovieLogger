@@ -76,6 +76,7 @@ namespace MovieLogger.Service.Services
                 ReleaseYear = a.Movie.ReleaseYear,
                 Director = a.Movie.Director,
                 RuntimeMinutes = a.Movie.RuntimeMinutes,
+                PosterImageUrl = a.Movie.PosterImageUrl,
                 LastWatchedAt = a.LastWatchedAt,
                 LastRating = a.LastRating,
                 TimesWatched = a.TimesWatched

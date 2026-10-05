@@ -12,6 +12,8 @@ namespace MovieLogger.Service.Dtos.MovieWatches
 
         public int? RuntimeMinutes { get; set; }
 
+        public string? PosterImageUrl { get; set; }
+
         public DateTime LastWatchedAt { get; set; }
 
         public int? LastRating { get; set; }

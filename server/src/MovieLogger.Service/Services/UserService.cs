@@ -14,18 +14,25 @@ namespace MovieLogger.Service.Services
             return user is null ? null : mapper.Map<UserResponseDto>(user);
         }
 
-        public async Task<bool> UpdateAsync(int id, UpdateUserDto dto, CancellationToken cancellationToken = default)
+        public async Task<UpdateUserResult> UpdateAsync(int id, UpdateUserDto dto, CancellationToken cancellationToken = default)
         {
             var user = await userRepository.GetByIdAsync(id, cancellationToken);
             if (user is null)
             {
-                return false;
+                return UpdateUserResult.UserNotFound();
+            }
+
+            // The user's own account is allowed to "match", e.g. when only the email's case changes.
+            var emailOwner = await userRepository.GetByEmailAsync(dto.Email, cancellationToken);
+            if (emailOwner is not null && emailOwner.Id != id)
+            {
+                return UpdateUserResult.DuplicateEmail();
             }
 
             mapper.Map(dto, user);
             user.UpdatedAt = DateTime.UtcNow;
             await userRepository.UpdateAsync(user, cancellationToken);
-            return true;
+            return UpdateUserResult.Success();
         }
 
         public Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)

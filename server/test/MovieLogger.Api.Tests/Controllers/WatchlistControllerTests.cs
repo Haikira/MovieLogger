@@ -28,6 +28,25 @@ namespace MovieLogger.Api.Tests.Controllers
         }
 
         [Fact]
+        public async Task GetMine_IncludesMovieDetailsAndGenresForEachItem()
+        {
+            const int dramaGenreId = 7;
+            const int romanceGenreId = 14;
+            var user = await RegisterUserAsync();
+            var movie = await CreateMovieAsync(
+                user, "Past Lives", releaseYear: 2023, director: "Celine Song", genreIds: [dramaGenreId, romanceGenreId]);
+            await user.Client.PostAsync($"/api/watchlist/{movie.Id}", null);
+
+            var item = (await GetWatchlistAsync(user)).Should().ContainSingle().Subject;
+
+            item.Title.Should().Be("Past Lives");
+            item.ReleaseYear.Should().Be(2023);
+            item.Director.Should().Be("Celine Song");
+            item.RuntimeMinutes.Should().Be(120);
+            item.Genres.Select(g => g.Name).Should().BeEquivalentTo(["Drama", "Romance"]);
+        }
+
+        [Fact]
         public async Task Add_MovieAlreadyOnWatchlist_ReturnsConflictWithoutDuplicating()
         {
             var user = await RegisterUserAsync();

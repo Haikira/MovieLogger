@@ -13,6 +13,8 @@ Run everything from the repository root:
 dotnet test MovieLogger.slnx
 ```
 
+`make test-api` runs the same command, and `make verify-project` runs it as part of a full build-and-test of the backend and frontend (see [`development.md`](development.md)).
+
 Or run one project:
 
 ```
@@ -56,3 +58,15 @@ Don't commit connection strings that contain passwords. Supply them through the 
 - `Controllers/*Tests.cs`: one class per controller or feature.
 
 New API test classes should derive from `ApiTestBase`, carry `[Collection(ApiTestCollection.Name)]`, and create all the data they rely on.
+
+## Frontend tests
+
+The React app in `client/` has its own Vitest + React Testing Library suite. It needs no running API or database: `fetch` is replaced by a stub that fails on any request a test hasn't set up. Run it from `client/`:
+
+```
+npm test
+```
+
+Or run `make test-frontend` from the repository root.
+
+See [`client/README.md`](../client/README.md#tests) for what it covers.
