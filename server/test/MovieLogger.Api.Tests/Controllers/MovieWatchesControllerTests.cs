@@ -103,7 +103,7 @@ namespace MovieLogger.Api.Tests.Controllers
             var response = await user.Client.PostAsJsonAsync("/api/moviewatches", new CreateMovieWatchDto
             {
                 MovieId = movie.Id,
-                DateWatched = DateTime.UtcNow.AddDays(1),
+                DateWatched = DateTime.UtcNow.AddDays(2),
                 Rating = 3
             });
 
