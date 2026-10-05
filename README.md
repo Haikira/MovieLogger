@@ -1,6 +1,6 @@
 # MovieLogger
 
-MovieLogger is a small REST API for logging and managing movies and genres.
+MovieLogger is a full-stack app for keeping a diary of the movies you watch: log each viewing with a rating and notes, keep a watchlist, and see your stats on a personal dashboard. It's an ASP.NET Core Web API backed by SQL Server, with a React + TypeScript frontend.
 
 This project is being rebuilt as a learning and refresher exercise, with a focus on modern .NET development, clean architecture, Git, AWS, and deployment practices.
 
@@ -12,7 +12,11 @@ This project is being rebuilt as a learning and refresher exercise, with a focus
 - SQL Server
 - Flyway
 - AutoMapper
+- JWT bearer authentication
 - Swagger / OpenAPI
+- xUnit, NSubstitute and `WebApplicationFactory` integration tests
+- React, TypeScript, Vite, React Router and TanStack Query (frontend)
+- Vitest and Testing Library (frontend tests)
 - Git / GitHub
 
 ## Architecture
@@ -59,7 +63,7 @@ Key architectural decisions are documented as ADRs in [`docs/adr`](docs/adr):
 - [ADR-001: Use ASP.NET Core Web API](docs/adr/ADR-001-use-asp-net-core-web-api.md)
 - [ADR-002: Use a Service layer](docs/adr/ADR-002-use-a-service-layer.md)
 - [ADR-003: Use Entity Framework Core](docs/adr/ADR-003-use-entity-framework-core.md)
-- [ADR-004: Use SQLite for local development](docs/adr/ADR-004-use-sqlite-for-local-development.md)
+- [ADR-004: Use SQLite for local development](docs/adr/ADR-004-use-sqlite-for-local-development.md) (superseded by ADR-011)
 - [ADR-005: Use the Repository Pattern](docs/adr/ADR-005-use-the-repository-pattern.md)
 - [ADR-006: Use a generic repository for common CRUD](docs/adr/ADR-006-use-a-generic-repository-for-common-crud.md)
 - [ADR-007: Use specialised repositories for entity-specific queries](docs/adr/ADR-007-use-specialised-repositories-for-entity-specific-queries.md)

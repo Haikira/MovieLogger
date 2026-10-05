@@ -1,7 +1,7 @@
 # ADR-003: Use Entity Framework Core
 
 ## Status
-Accepted
+Accepted, and amended by later decisions: EF Core is still the ORM, but the provider is now SQL Server ([ADR-011](ADR-011-use-sql-server-for-local-development.md)) and schema migrations moved from EF Core to Flyway ([ADR-012](ADR-012-use-flyway-for-schema-migrations.md)). The SQLite package and the `Migrations/` folder described below no longer exist.
 
 ## Context
 MovieLogger needs to persist and query relational data (movies, genres, and the relationship between them) from .NET code. The team wanted a mature, well-supported ORM with first-class .NET/ASP.NET Core integration, migration tooling, and support for multiple database providers so the same data access code could target different databases across environments.

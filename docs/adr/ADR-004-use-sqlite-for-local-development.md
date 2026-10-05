@@ -1,7 +1,7 @@
 # ADR-004: Use SQLite for local development
 
 ## Status
-Accepted
+Superseded by [ADR-011](ADR-011-use-sql-server-for-local-development.md). The project no longer uses SQLite.
 
 ## Context
 The project needs a concrete database provider to run against during development. It should require no external database server installation or configuration so that any contributor can clone the repo and run the API immediately, with EF Core migrations able to create the schema on demand.
