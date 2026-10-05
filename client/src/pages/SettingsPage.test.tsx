@@ -23,6 +23,19 @@ describe('Settings page', () => {
     expect(within(screen.getByRole('complementary')).getByText('Cam')).toBeInTheDocument();
   });
 
+  it('explains when the new email already belongs to another account (409)', async () => {
+    createApi().on('PUT', `/api/users/${testUser.id}`, json(409, { message: 'A user with this email already exists.' }));
+    const { user } = renderApp('/settings');
+
+    const email = await screen.findByLabelText('Email address');
+    await user.clear(email);
+    await user.type(email, 'taken@example.com');
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    expect(await screen.findByText('A user with this email already exists.')).toBeInTheDocument();
+    expect(screen.queryByText('Your profile has been updated.')).not.toBeInTheDocument();
+  });
+
   it('shows an incorrect current password against that field', async () => {
     createApi().on('POST', '/api/users/change-password', json(400, { message: 'Current password is incorrect.' }));
     const { user } = renderApp('/settings');

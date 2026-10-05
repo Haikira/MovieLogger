@@ -7,7 +7,7 @@ namespace MovieLogger.Service.Interfaces
     {
         Task<UserResponseDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 
-        Task<bool> UpdateAsync(int id, UpdateUserDto dto, CancellationToken cancellationToken = default);
+        Task<UpdateUserResult> UpdateAsync(int id, UpdateUserDto dto, CancellationToken cancellationToken = default);
 
         Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
 

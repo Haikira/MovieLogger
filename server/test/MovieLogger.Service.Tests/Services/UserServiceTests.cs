@@ -45,14 +45,14 @@ namespace MovieLogger.Service.Tests.Services
         }
 
         [Fact]
-        public async Task UpdateAsync_UserNotFound_ReturnsFalseWithoutUpdating()
+        public async Task UpdateAsync_UserNotFound_ReturnsUserNotFoundWithoutUpdating()
         {
             _userRepository.GetByIdAsync(99, Arg.Any<CancellationToken>()).Returns((User?)null);
             var dto = new UpdateUserDto { DisplayName = "new-name", Email = "new@example.com" };
 
             var result = await _sut.UpdateAsync(99, dto);
 
-            result.Should().BeFalse();
+            result.Outcome.Should().Be(UpdateUserOutcome.UserNotFound);
             await _userRepository.DidNotReceive().UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
         }
 
@@ -65,10 +65,40 @@ namespace MovieLogger.Service.Tests.Services
 
             var result = await _sut.UpdateAsync(1, dto);
 
-            result.Should().BeTrue();
+            result.Outcome.Should().Be(UpdateUserOutcome.Success);
             existingUser.DisplayName.Should().Be("new-name");
             existingUser.Email.Should().Be("new@example.com");
             existingUser.UpdatedAt.Should().NotBeNull();
+            await _userRepository.Received(1).UpdateAsync(existingUser, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task UpdateAsync_EmailBelongsToAnotherUser_ReturnsDuplicateEmailWithoutUpdating()
+        {
+            var existingUser = new User { Id = 1, DisplayName = "alice", Email = "alice@example.com" };
+            _userRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingUser);
+            _userRepository.GetByEmailAsync("bob@example.com", Arg.Any<CancellationToken>())
+                .Returns(new User { Id = 2, Email = "bob@example.com" });
+            var dto = new UpdateUserDto { DisplayName = "alice", Email = "bob@example.com" };
+
+            var result = await _sut.UpdateAsync(1, dto);
+
+            result.Outcome.Should().Be(UpdateUserOutcome.DuplicateEmail);
+            existingUser.Email.Should().Be("alice@example.com");
+            await _userRepository.DidNotReceive().UpdateAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task UpdateAsync_EmailBelongsToSameUser_Succeeds()
+        {
+            var existingUser = new User { Id = 1, DisplayName = "alice", Email = "alice@example.com" };
+            _userRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingUser);
+            _userRepository.GetByEmailAsync("Alice@Example.com", Arg.Any<CancellationToken>()).Returns(existingUser);
+            var dto = new UpdateUserDto { DisplayName = "Alice", Email = "Alice@Example.com" };
+
+            var result = await _sut.UpdateAsync(1, dto);
+
+            result.Outcome.Should().Be(UpdateUserOutcome.Success);
             await _userRepository.Received(1).UpdateAsync(existingUser, Arg.Any<CancellationToken>());
         }
 
