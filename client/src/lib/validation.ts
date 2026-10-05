@@ -21,7 +21,7 @@ export function validateEmail(value: string): string | undefined {
   return undefined;
 }
 
-/** The Figma password rule: at least 8 characters including a number (stricter than the API's minimum). */
+/** The Figma password rule: at least 8 characters including a number (the API enforces the same rule). */
 export function validateNewPassword(value: string): string | undefined {
   if (!value) {
     return 'Enter a password.';

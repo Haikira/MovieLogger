@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using FluentAssertions;
 using MovieLogger.Service.Dtos.Auth;
+using MovieLogger.Service.Dtos.Users;
 
 namespace MovieLogger.Service.Tests.Services
 {
@@ -53,6 +54,38 @@ namespace MovieLogger.Service.Tests.Services
             };
 
             Validate(dto).Should().Contain(r => r.MemberNames.Contains(nameof(RegisterRequestDto.Password)));
+        }
+
+        [Fact]
+        public void RegisterRequestDto_PasswordWithoutANumber_IsRejected()
+        {
+            var dto = new RegisterRequestDto
+            {
+                DisplayName = "alice",
+                Email = "alice@example.com",
+                Password = "longpassword",
+                ConfirmPassword = "longpassword"
+            };
+
+            Validate(dto).Should().Contain(r =>
+                r.MemberNames.Contains(nameof(RegisterRequestDto.Password)) &&
+                r.ErrorMessage == "Password must include at least one number.");
+        }
+
+        [Fact]
+        public void ChangePasswordDto_NewPasswordWithoutANumber_IsRejected()
+        {
+            var dto = new ChangePasswordDto
+            {
+                CurrentPassword = "Password123",
+                NewPassword = "longpassword",
+                ConfirmNewPassword = "longpassword"
+            };
+
+            var results = new List<ValidationResult>();
+            Validator.TryValidateObject(dto, new ValidationContext(dto), results, validateAllProperties: true);
+
+            results.Should().Contain(r => r.MemberNames.Contains(nameof(ChangePasswordDto.NewPassword)));
         }
 
         [Fact]

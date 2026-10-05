@@ -143,7 +143,7 @@ These follow the decisions agreed before implementation:
 - **Forgot password** is omitted from the login page: the API has no password reset yet.
 - **Avatars** use the display name's initial; Change photo/Remove are omitted (no avatar storage).
 - **Passwords** in the register and change-password forms must be 8+ characters with a number,
-  as in the design. (The API itself only requires 8 characters; it hasn't been changed.)
+  as in the design. The API enforces the same rule.
 - **Add Movie** requires at least one genre, chosen from `GET /api/genres`.
 - **Logging a watchlisted movie** doesn't remove it from the watchlist. After saving, the user is
   asked whether to remove it.
