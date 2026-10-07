@@ -18,7 +18,7 @@ Flyway needs a JVM available (bundled with recent Flyway CLI distributions; othe
 
 ## Local connection setup (Windows Integrated Auth)
 
-The local SQL Server instance uses Windows Integrated Authentication, the same as EF Core's runtime connection string (`server/src/MovieLogger.Api/appsettings.json`). `database/flyway.conf` is configured accordingly:
+The local SQL Server instance uses Windows Integrated Authentication, the same as EF Core's local runtime connection string (`server/src/MovieLogger.Api/appsettings.Development.json`). `database/flyway.conf` is configured accordingly:
 
 ```
 flyway.url=jdbc:sqlserver://localhost;databaseName=MovieLoggerDb;integratedSecurity=true;trustServerCertificate=true;

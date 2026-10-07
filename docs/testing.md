@@ -30,7 +30,7 @@ dotnet test server/test/MovieLogger.Api.Tests
 
 No extra setup is needed beyond the SQL Server instance you already use for development:
 
-- The tests connect to `localhost` with Windows Integrated Authentication (`Trusted_Connection=True;TrustServerCertificate=True`), the same as `appsettings.json`.
+- The tests connect to `localhost` with Windows Integrated Authentication (`Trusted_Connection=True;TrustServerCertificate=True`), the same as `appsettings.Development.json`.
 - Your Windows login needs permission to create and drop databases on that instance. A local administrator/`sysadmin` login, which is the default for a local Developer Edition install, has it.
 - You **don't** need the Flyway CLI, a user secret, or a `Jwt:Key` to run the tests. The tests generate their own signing key for each run and never load your user secrets.
 
@@ -55,9 +55,11 @@ Don't commit connection strings that contain passwords. Supply them through the 
 - `TestSupport/TestDatabase.cs`: creates, migrates and drops `MovieLoggerDb_ApiTests`.
 - `TestSupport/ApiTestCollection.cs`: the xUnit collection that shares one factory/database across all test classes.
 - `TestSupport/ApiTestBase.cs`: helpers to register a user (getting a real JWT from the API), create authenticated clients, create movies and log watches.
+- `TestSupport/ConfiguredApiFactory.cs`: hosts the API with exactly the settings a test supplies and no database, for testing startup configuration and middleware.
 - `Controllers/*Tests.cs`: one class per controller or feature.
+- `Hosting/*Tests.cs`: hosting concerns: `/health`, startup configuration validation, CORS and forwarded headers.
 
-New API test classes should derive from `ApiTestBase`, carry `[Collection(ApiTestCollection.Name)]`, and create all the data they rely on.
+New API test classes should derive from `ApiTestBase`, carry `[Collection(ApiTestCollection.Name)]`, and create all the data they rely on. The exception is a test that needs the API started with different configuration (for example CORS origins or a missing setting): it creates its own `ConfiguredApiFactory` and must not touch the database.
 
 ## Frontend tests
 
