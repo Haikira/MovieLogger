@@ -47,6 +47,11 @@ Common tasks run through the [`Makefile`](Makefile) in the repository root. You 
 | `make test-all` | Run the backend and frontend tests |
 | `make verify-project` | Full check: backend build, backend tests, frontend tests, frontend build |
 | `make clean` | Remove build output (.NET build output and `client/dist`) |
+| `make docker-build` / `make docker-run` | Build / run the production API container image |
+
+## Deployment
+
+The API ships as a container image built from [`server/Dockerfile`](server/Dockerfile). [`docs/deployment.md`](docs/deployment.md) lists the configuration it needs (connection string, JWT key, CORS origins), how to build and run the image locally, and how database migrations are applied.
 
 ## Database Migrations
 
@@ -74,6 +79,7 @@ Key architectural decisions are documented as ADRs in [`docs/adr`](docs/adr):
 - [ADR-012: Use Flyway for schema migrations](docs/adr/ADR-012-use-flyway-for-schema-migrations.md)
 - [ADR-013: Use JWT bearer authentication](docs/adr/ADR-013-use-jwt-bearer-authentication.md)
 - [ADR-014: Use a dedicated SQL Server database for API integration tests](docs/adr/ADR-014-use-a-dedicated-sql-server-database-for-api-integration-tests.md)
+- [ADR-015: Package the API as a container configured through the environment](docs/adr/ADR-015-package-the-api-as-a-container-configured-through-the-environment.md)
 
 ## Entity Relationship Diagram
 

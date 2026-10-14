@@ -31,10 +31,12 @@ API_PROJECT   := server/src/MovieLogger.Api
 API_PROFILE   := http
 CLIENT_DIR    := client
 FLYWAY_CONFIG := database/flyway.conf
+API_IMAGE     := movielogger-api
 
 DOTNET := dotnet
 FLYWAY := flyway
 NODE   := node
+DOCKER := docker
 
 # Extra arguments for the Vite dev server. start-dev sets --clearScreen false so Vite doesn't
 # wipe the API's startup output from the shared terminal.
@@ -44,7 +46,7 @@ VITE_DEV_ARGS :=
 
 .PHONY: help install-dependencies start-api start-frontend start-dev build-api build-frontend \
         test-api test-frontend test-all verify-project database-status database-migrate clean \
-        check-frontend-dependencies
+        check-frontend-dependencies docker-build docker-run
 
 # -----------------------------------------------------------------------------
 # Help
@@ -79,6 +81,13 @@ Test
   verify-project        Full check before committing: backend build, backend tests,
                         frontend tests, frontend production build. Stops at, and names,
                         the first stage that fails.
+
+Docker (needs Docker installed; see docs/deployment.md)
+  docker-build          Build the production API image (movielogger-api) from
+                        server/Dockerfile.
+  docker-run            Run the API image on http://localhost:8080 in the Production
+                        environment. Passes ConnectionStrings__MovieLoggerDb, Jwt__Key
+                        and Cors__AllowedOrigins__0 through from your environment.
 
 Housekeeping
   clean                 Remove build output: .NET bin/obj output (dotnet clean) and
@@ -174,6 +183,17 @@ database-status:
 # `flyway migrate` only applies pending versioned migrations; it never drops or cleans.
 database-migrate:
 	$(FLYWAY) -configFiles=$(FLYWAY_CONFIG) migrate
+
+# -----------------------------------------------------------------------------
+# Docker (see docs/deployment.md)
+# -----------------------------------------------------------------------------
+docker-build:
+	$(DOCKER) build -t $(API_IMAGE) -f server/Dockerfile server
+
+# `-e NAME` with no value copies NAME from the calling environment (and skips it if unset), so no
+# configuration value or secret ever appears in this file or on the command line.
+docker-run:
+	$(DOCKER) run --rm -p 8080:8080 -e ConnectionStrings__MovieLoggerDb -e Jwt__Key -e Cors__AllowedOrigins__0 $(API_IMAGE)
 
 # -----------------------------------------------------------------------------
 # Housekeeping

@@ -60,8 +60,10 @@ Copy `.env.example` to `.env.local` to override the defaults (both are optional)
 In development the browser only ever talks to the Vite dev server, which proxies `/api` to the
 API. That keeps everything on one origin, so the API needs no CORS configuration. For a
 deployment you can either serve the built `dist/` from the same origin as the API (leave
-`VITE_API_BASE_URL` empty), or host it separately and set `VITE_API_BASE_URL`; the latter needs a
-CORS policy adding to the API, which it doesn't have today.
+`VITE_API_BASE_URL` empty), or host it separately and set `VITE_API_BASE_URL`; the latter needs the
+frontend's origin adding to the API's `Cors:AllowedOrigins` (see
+[`docs/deployment.md`](../docs/deployment.md)). `VITE_*` values are baked in at build time, so set
+`VITE_API_BASE_URL` before `npm run build`.
 
 ## Project structure
 

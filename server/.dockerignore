@@ -1,0 +1,26 @@
+# Build context for server/Dockerfile. Only the API and the projects it references are needed.
+
+# Build output
+**/bin/
+**/obj/
+
+# Tests aren't part of the production image
+test/
+
+# User-specific and IDE files
+**/*.user
+**/*.suo
+**/.vs/
+**/.vscode/
+**/.idea/
+
+# Local databases (e.g. the old SQLite movielogger.db) and environment files
+**/*.db
+**/*.db-shm
+**/*.db-wal
+**/.env
+**/.env.*
+
+# Docker files themselves
+Dockerfile
+.dockerignore
