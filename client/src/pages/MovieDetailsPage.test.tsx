@@ -21,6 +21,7 @@ describe('Movie details page', () => {
     expect(screen.getByText('1979 · 117 min · Directed by Ridley Scott')).toBeInTheDocument();
     expect(within(screen.getByRole('list', { name: 'Genres' })).getAllByRole('listitem')).toHaveLength(2);
     expect(screen.getByText('Added to the catalogue by you on 12 Mar 2025')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Edit details of Alien' })).toHaveAttribute('href', '/movies/1/edit');
 
     const history = screen.getByRole('region', { name: 'Your History' });
     const items = within(history).getAllByRole('listitem');
