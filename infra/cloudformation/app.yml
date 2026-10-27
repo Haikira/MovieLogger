@@ -151,6 +151,39 @@ Resources:
               awslogs-region: !Ref AWS::Region
               awslogs-stream-prefix: migrator
 
+  # sqlcmd as the database admin, over validated TLS, for one-off statements such as the native backup
+  # before teardown. The statement is passed as the command with `aws ecs run-task --overrides`.
+  DbAdminTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: movielogger-dbadmin
+      RequiresCompatibilities: [FARGATE]
+      NetworkMode: awsvpc
+      Cpu: "256"
+      Memory: "512"
+      RuntimePlatform: { OperatingSystemFamily: LINUX, CpuArchitecture: X86_64 }
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: sqlcmd
+          Image: !Sub
+            - "${Repo}:${MigratorImageTag}"
+            - Repo: !ImportValue "movielogger:MigratorRepositoryUri"
+          Essential: true
+          EntryPoint: [/usr/local/bin/sqlcmd]
+          Command: [-N, mandatory, -b, -d, master, -Q, "SELECT @@VERSION"]
+          Environment:
+            - { Name: SQLCMDSERVER, Value: !Sub ["tcp:${Host},1433", { Host: !ImportValue "movielogger:DatabaseEndpoint" }] }
+            - { Name: SQLCMDUSER, Value: !ImportValue "movielogger:DatabaseMasterUsername" }
+          Secrets:
+            - Name: SQLCMDPASSWORD
+              ValueFrom: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/movielogger/db-admin-password
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /movielogger/migrator
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: dbadmin
+
   # Public subnet with a public IP for outbound traffic only; the security group admits just the load balancer.
   ApiService:
     Type: AWS::ECS::Service

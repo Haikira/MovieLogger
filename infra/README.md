@@ -40,7 +40,7 @@ docker build -t $REG/movielogger-migrator:$TAG -f database/Dockerfile . && docke
 ## 4. Database (starts billing, ~15-25 minutes)
 
 ```bash
-aws cloudformation deploy --stack-name movielogger-database --template-file infra/cloudformation/database.yml
+aws cloudformation deploy --stack-name movielogger-database --template-file infra/cloudformation/database.yml --capabilities CAPABILITY_IAM
 APP_PW=$(aws ssm get-parameter --name /movielogger/db-app-password --with-decryption --query Parameter.Value --output text)
 aws ssm put-parameter --name /movielogger/api-connection-string --type SecureString \
   --value="Server=$(out DatabaseEndpoint),1433;Database=MovieLoggerDb;User Id=movielogger_app;Password=$APP_PW;Encrypt=True"
@@ -82,4 +82,26 @@ Build and push with a new `TAG`, run the migration task again if there are new m
 
 ## Teardown
 
-Take a native backup of `MovieLoggerDb` and check it restores locally first. Then: scale the API to 0, empty the site bucket, delete `movielogger-app`, turn off deletion protection on the database and delete `movielogger-database` (it leaves a final snapshot: delete that too, or it keeps billing), delete `movielogger-base`, then the `/movielogger/*` parameters and the budget.
+Nothing below is deleted until the backup has been restored and checked locally.
+
+```bash
+# 1. Native backup to the backup bucket, run as the admin from inside the VPC
+BACKUP_BUCKET=$(aws cloudformation describe-stacks --stack-name movielogger-database --query "Stacks[0].Outputs[?OutputKey=='BackupBucketName'].OutputValue" --output text)
+dbadmin() {
+  local task=$(aws ecs run-task --cluster movielogger --launch-type FARGATE --task-definition movielogger-dbadmin \
+    --network-configuration "awsvpcConfiguration={subnets=[$(out PublicSubnetIds)],securityGroups=[$(out MigratorSecurityGroupId)],assignPublicIp=ENABLED}" \
+    --overrides "$(node -e 'console.log(JSON.stringify({containerOverrides:[{name:"sqlcmd",command:["-N","mandatory","-b","-d","master","-Q",process.argv[1]]}]}))' "$1")" \
+    --query "tasks[0].taskArn" --output text)
+  aws ecs wait tasks-stopped --cluster movielogger --tasks $task
+  aws logs tail /movielogger/migrator --since 10m --filter-pattern "" | tail -20
+}
+dbadmin "exec msdb.dbo.rds_backup_database @source_db_name='MovieLoggerDb', @s3_arn_to_backup_to='arn:aws:s3:::$BACKUP_BUCKET/MovieLoggerDb.bak', @type='FULL'"
+dbadmin "exec msdb.dbo.rds_task_status @db_name='MovieLoggerDb'"   # repeat until lifecycle is SUCCESS
+
+# 2. Restore locally under another name and compare row counts with the live site
+aws s3 cp s3://$BACKUP_BUCKET/MovieLoggerDb.bak ./MovieLoggerDb-rds.bak
+#   RESTORE DATABASE MovieLoggerDb_RdsCheck FROM DISK = '<full path>\MovieLoggerDb-rds.bak' WITH MOVE ... (see RESTORE FILELISTONLY)
+#   then SELECT COUNT(*) from Users, Movies and MovieWatches, and keep the .bak file somewhere safe
+```
+
+3. Only after that, and with explicit approval: scale the API to 0, empty the site bucket, delete `movielogger-app`, turn off deletion protection (`aws rds modify-db-instance --db-instance-identifier <id> --no-deletion-protection --apply-immediately`), delete `movielogger-database` (this takes a final snapshot; delete it once the local restore is confirmed, as it keeps billing), delete `movielogger-base`, the backup bucket (retained by the stack), the `/movielogger/*` parameters and the budget.

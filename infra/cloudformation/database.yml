@@ -28,9 +28,62 @@ Resources:
       Parameters:
         rds.force_ssl: "1"
 
+  # Native backups (msdb.dbo.rds_backup_database) are written here so they can be restored locally
+  # before the database is deleted. Retained when the stack is deleted; empty it and delete it by hand.
+  BackupBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      OwnershipControls:
+        Rules: [{ ObjectOwnership: BucketOwnerEnforced }]
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 }
+
+  BackupRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: rds.amazonaws.com }
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals: { "aws:SourceAccount": !Ref AWS::AccountId }
+      Policies:
+        - PolicyName: native-backup
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [s3:ListBucket, s3:GetBucketLocation]
+                Resource: !GetAtt BackupBucket.Arn
+              - Effect: Allow
+                Action: [s3:GetObject, s3:PutObject, s3:ListMultipartUploadParts, s3:AbortMultipartUpload]
+                Resource: !Sub "${BackupBucket.Arn}/*"
+
+  DatabaseOptionGroup:
+    Type: AWS::RDS::OptionGroup
+    Properties:
+      OptionGroupDescription: MovieLogger SQL Server Express - native backup to S3
+      EngineName: sqlserver-ex
+      MajorEngineVersion: "16.00"
+      OptionConfigurations:
+        - OptionName: SQLSERVER_BACKUP_RESTORE
+          OptionSettings:
+            - Name: IAM_ROLE_ARN
+              Value: !GetAtt BackupRole.Arn
+
   # Deletion protection and a final snapshot guard the data against an accidental stack delete.
-  # Teardown (ADR-016): take a native backup, turn off deletion protection, delete the stack, then
-  # delete the final snapshot, which otherwise keeps billing.
+  # Teardown (infra/README.md): take a native backup and restore it locally, turn off deletion
+  # protection, delete the stack, then delete the final snapshot, which otherwise keeps billing.
   Database:
     Type: AWS::RDS::DBInstance
     DeletionPolicy: Snapshot
@@ -48,6 +101,7 @@ Resources:
       DBSubnetGroupName: !Ref DatabaseSubnetGroup
       VPCSecurityGroups: [!ImportValue "movielogger:DatabaseSecurityGroupId"]
       DBParameterGroupName: !Ref DatabaseParameterGroup
+      OptionGroupName: !Ref DatabaseOptionGroup
       CACertificateIdentifier: rds-ca-rsa2048-g1
       Port: "1433"
       MasterUsername: !Ref MasterUsername
@@ -67,3 +121,5 @@ Outputs:
   MasterUsername:
     Value: !Ref MasterUsername
     Export: { Name: "movielogger:DatabaseMasterUsername" }
+  BackupBucketName:
+    Value: !Ref BackupBucket
