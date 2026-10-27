@@ -25,6 +25,9 @@ namespace MovieLogger.Api.Tests.TestSupport
             builder.UseEnvironment("Testing");
             builder.UseSetting("ConnectionStrings:MovieLoggerDb", _database.ConnectionString);
             builder.UseSetting("Jwt:Key", _jwtKey);
+            // Every test request comes from the same in-memory client, so per-IP limits would trip across the
+            // suite. RateLimitingTests covers the limits themselves.
+            builder.UseSetting("RateLimiting:Enabled", "false");
         }
 
         public async Task InitializeAsync()

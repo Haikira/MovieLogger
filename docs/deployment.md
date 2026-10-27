@@ -17,6 +17,19 @@ ASP.NET Core maps environment variables onto configuration keys, with `__` (doub
 
 `Jwt:Issuer`, `Jwt:Audience` and `Jwt:ExpirationMinutes` have committed defaults in `appsettings.json` and can be overridden the same way (`Jwt__Issuer` etc.).
 
+### Abuse protection
+
+| Environment variable | Default | Notes |
+| --- | --- | --- |
+| `ForwardedHeaders__ForwardLimit` | `1` | Number of proxies in front of the API. Set it to **`2`** behind CloudFront and the load balancer, so the API sees the visitor's IP rather than CloudFront's. Must be at least 1. |
+| `Registration__Enabled` | `true` | `false` closes sign-up (`POST /api/auth/register` returns 403 with a message). Existing users can still log in. |
+| `RateLimiting__Enabled` | `true` | Per-client-IP limits. Rejected requests get `429` with a `Retry-After` header. `/health` is never limited. |
+| `RateLimiting__RequestsPerMinute` | `300` | All requests from one client. |
+| `RateLimiting__LoginAttemptsPerFiveMinutes` | `10` | `POST /api/auth/login`. |
+| `RateLimiting__RegistrationsPerHour` | `5` | `POST /api/auth/register`. |
+
+The limits are per API container and held in memory, so they reset when the container restarts. That's enough for a single-task demo; several containers would each apply their own limits.
+
 Only the user who added a movie (`CreatedByUserId`) can edit (`PUT`) or delete it; anyone else gets 403. Deleting a movie cascades to every user's watch logs, watchlist entries and list items for it.
 
 ### CORS

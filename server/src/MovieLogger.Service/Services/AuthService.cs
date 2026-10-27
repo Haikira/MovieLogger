@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.Extensions.Options;
 using MovieLogger.Service.Dtos.Auth;
 using MovieLogger.Service.Dtos.Users;
 using MovieLogger.Service.Entities;
@@ -12,10 +13,16 @@ namespace MovieLogger.Service.Services
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         IJwtTokenGenerator jwtTokenGenerator,
+        IOptions<RegistrationSettings> registrationOptions,
         IMapper mapper) : IAuthService
     {
         public async Task<RegisterResult> RegisterAsync(RegisterRequestDto dto, CancellationToken cancellationToken = default)
         {
+            if (!registrationOptions.Value.Enabled)
+            {
+                return RegisterResult.RegistrationClosed();
+            }
+
             var existing = await userRepository.GetByEmailAsync(dto.Email, cancellationToken);
             if (existing is not null)
             {

@@ -1,5 +1,6 @@
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Options;
 using MovieLogger.Service.Dtos.Auth;
 using MovieLogger.Service.Entities;
 using MovieLogger.Service.Repositories;
@@ -16,11 +17,12 @@ namespace MovieLogger.Service.Tests.Services
         private readonly IPasswordHasher _passwordHasher = Substitute.For<IPasswordHasher>();
         private readonly IJwtTokenGenerator _jwtTokenGenerator = Substitute.For<IJwtTokenGenerator>();
         private readonly IMapper _mapper = TestMapperFactory.Create();
+        private readonly RegistrationSettings _registrationSettings = new();
         private readonly AuthService _sut;
 
         public AuthServiceTests()
         {
-            _sut = new AuthService(_userRepository, _passwordHasher, _jwtTokenGenerator, _mapper);
+            _sut = new AuthService(_userRepository, _passwordHasher, _jwtTokenGenerator, Options.Create(_registrationSettings), _mapper);
             _jwtTokenGenerator.GenerateToken(Arg.Any<User>()).Returns(("token", DateTime.UtcNow.AddHours(1)));
         }
 
@@ -45,6 +47,26 @@ namespace MovieLogger.Service.Tests.Services
             await _userRepository.Received(1).AddAsync(
                 Arg.Is<User>(u => u.Email == "alice@example.com" && u.PasswordHash == "hashed-password"),
                 Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task RegisterAsync_RegistrationDisabled_ReturnsRegistrationClosedWithoutLookingUpOrAdding()
+        {
+            _registrationSettings.Enabled = false;
+            var dto = new RegisterRequestDto
+            {
+                DisplayName = "alice",
+                Email = "alice@example.com",
+                Password = "Password123",
+                ConfirmPassword = "Password123"
+            };
+
+            var result = await _sut.RegisterAsync(dto);
+
+            result.Outcome.Should().Be(RegisterOutcome.RegistrationClosed);
+            result.AuthResponse.Should().BeNull();
+            await _userRepository.DidNotReceive().GetByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+            await _userRepository.DidNotReceive().AddAsync(Arg.Any<User>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
