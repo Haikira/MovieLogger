@@ -1,0 +1,19 @@
+{
+  "BudgetName": "movielogger-deployment",
+  "BudgetType": "COST",
+  "TimeUnit": "QUARTERLY",
+  "BudgetLimit": { "Amount": "40", "Unit": "USD" },
+  "CostTypes": {
+    "IncludeCredit": false,
+    "IncludeRefund": false,
+    "IncludeTax": true,
+    "IncludeSubscription": true,
+    "UseBlended": false,
+    "IncludeOtherSubscription": true,
+    "IncludeRecurring": true,
+    "IncludeUpfront": true,
+    "IncludeSupport": true,
+    "IncludeDiscount": true,
+    "UseAmortized": false
+  }
+}

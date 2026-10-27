@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  MovieLogger database (ADR-016): private RDS for SQL Server Express, single-AZ, TLS enforced.
+  Bills by the hour while it exists. Requires the base stack and the SecureString parameter
+  /movielogger/db-admin-password (version 1).
+
+Parameters:
+  EngineVersion:
+    Type: String
+    Default: 16.00.4295.3.v1
+  MasterUsername:
+    Type: String
+    Default: movielogger_admin
+    AllowedPattern: "^[A-Za-z][A-Za-z0-9_]{0,127}$"
+
+Resources:
+  DatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: MovieLogger private subnets
+      SubnetIds: !Split [",", !ImportValue "movielogger:PrivateSubnetIds"]
+
+  DatabaseParameterGroup:
+    Type: AWS::RDS::DBParameterGroup
+    Properties:
+      Description: MovieLogger SQL Server Express - refuse unencrypted connections
+      Family: sqlserver-ex-16.0
+      Parameters:
+        rds.force_ssl: "1"
+
+  # Deletion protection and a final snapshot guard the data against an accidental stack delete.
+  # Teardown (ADR-016): take a native backup, turn off deletion protection, delete the stack, then
+  # delete the final snapshot, which otherwise keeps billing.
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    UpdateReplacePolicy: Snapshot
+    Properties:
+      Engine: sqlserver-ex
+      EngineVersion: !Ref EngineVersion
+      LicenseModel: license-included
+      DBInstanceClass: db.t3.micro
+      AllocatedStorage: "20"
+      StorageType: gp3
+      StorageEncrypted: true
+      MultiAZ: false
+      PubliclyAccessible: false
+      DBSubnetGroupName: !Ref DatabaseSubnetGroup
+      VPCSecurityGroups: [!ImportValue "movielogger:DatabaseSecurityGroupId"]
+      DBParameterGroupName: !Ref DatabaseParameterGroup
+      CACertificateIdentifier: rds-ca-rsa2048-g1
+      Port: "1433"
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: "{{resolve:ssm-secure:/movielogger/db-admin-password:1}}"
+      BackupRetentionPeriod: 1
+      DeletionProtection: true
+      AutoMinorVersionUpgrade: true
+      EnablePerformanceInsights: false
+      MonitoringInterval: 0
+      CopyTagsToSnapshot: true
+      Tags: [{ Key: Name, Value: movielogger }]
+
+Outputs:
+  DatabaseEndpoint:
+    Value: !GetAtt Database.Endpoint.Address
+    Export: { Name: "movielogger:DatabaseEndpoint" }
+  MasterUsername:
+    Value: !Ref MasterUsername
+    Export: { Name: "movielogger:DatabaseMasterUsername" }
