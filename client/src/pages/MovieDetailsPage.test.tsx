@@ -58,6 +58,15 @@ describe('Movie details page', () => {
     await waitFor(() => expect(screen.queryByText('02 Feb 2021')).not.toBeInTheDocument());
   });
 
+  it('only offers Edit Details to the user who added the movie', async () => {
+    createApi().on('GET', '/api/movies/1', movieDetails({ ...alien, createdByUserId: 999 }));
+    renderApp('/movies/1');
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Alien' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Edit details of Alien' })).not.toBeInTheDocument();
+    expect(screen.getByText('Added to the catalogue on 12 Mar 2025')).toBeInTheDocument();
+  });
+
   it('closes the dialog with Escape', async () => {
     createApi().on('GET', '/api/movies/1', movieDetails(alien, logs));
     const { user } = renderApp('/movies/1');

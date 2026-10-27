@@ -74,12 +74,18 @@ namespace MovieLogger.Service.Services
             return MovieMutationResult.Success(mapper.Map<MovieResponseDto>(movie));
         }
 
-        public async Task<MovieMutationResult> UpdateAsync(int id, UpdateMovieDto dto, CancellationToken cancellationToken = default)
+        public async Task<MovieMutationResult> UpdateAsync(int id, UpdateMovieDto dto, int currentUserId, CancellationToken cancellationToken = default)
         {
             var movie = await movieRepository.GetByIdAsync(id, cancellationToken);
             if (movie is null)
             {
                 return MovieMutationResult.NotFound();
+            }
+
+            // The catalogue is shared, so only the user who added a movie may change it.
+            if (movie.CreatedByUserId != currentUserId)
+            {
+                return MovieMutationResult.NotCreator();
             }
 
             var (genres, invalidGenreIds) = await ResolveGenresAsync(dto.GenreIds, cancellationToken);
@@ -100,9 +106,23 @@ namespace MovieLogger.Service.Services
             return MovieMutationResult.Success(mapper.Map<MovieResponseDto>(movie));
         }
 
-        public Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
+        public async Task<MovieMutationOutcome> DeleteAsync(int id, int currentUserId, CancellationToken cancellationToken = default)
         {
-            return movieRepository.DeleteAsync(id, cancellationToken);
+            var movie = await movieRepository.GetByIdAsync(id, cancellationToken);
+            if (movie is null)
+            {
+                return MovieMutationOutcome.NotFound;
+            }
+
+            // Deleting a movie cascades to every user's watch logs, watchlist entries and list items for it,
+            // so only the user who added it may delete it.
+            if (movie.CreatedByUserId != currentUserId)
+            {
+                return MovieMutationOutcome.NotCreator;
+            }
+
+            var deleted = await movieRepository.DeleteAsync(id, cancellationToken);
+            return deleted ? MovieMutationOutcome.Success : MovieMutationOutcome.NotFound;
         }
 
         private async Task<(List<Genre> Genres, List<int> InvalidGenreIds)> ResolveGenresAsync(

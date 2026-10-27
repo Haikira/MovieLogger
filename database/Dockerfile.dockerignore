@@ -1,0 +1,5 @@
+# Build context for database/Dockerfile is the repository root; only send what the image needs.
+*
+!database/migrations/
+!database/migrator/
+!server/certs/aws-rds/*.crt

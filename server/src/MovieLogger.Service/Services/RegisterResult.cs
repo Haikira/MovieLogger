@@ -5,7 +5,8 @@ namespace MovieLogger.Service.Services
     public enum RegisterOutcome
     {
         Success,
-        DuplicateEmail
+        DuplicateEmail,
+        RegistrationClosed
     }
 
     public class RegisterResult
@@ -19,5 +20,8 @@ namespace MovieLogger.Service.Services
 
         public static RegisterResult DuplicateEmail() =>
             new() { Outcome = RegisterOutcome.DuplicateEmail };
+
+        public static RegisterResult RegistrationClosed() =>
+            new() { Outcome = RegisterOutcome.RegistrationClosed };
     }
 }

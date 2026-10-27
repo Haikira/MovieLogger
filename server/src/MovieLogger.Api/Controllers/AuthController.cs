@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using MovieLogger.Api.Security;
 using MovieLogger.Service.Dtos.Auth;
 using MovieLogger.Service.Interfaces;
 using MovieLogger.Service.Services;
@@ -10,6 +12,7 @@ namespace MovieLogger.Api.Controllers
     public class AuthController(IAuthService authService) : ControllerBase
     {
         [HttpPost("register")]
+        [EnableRateLimiting(RateLimitSettings.RegisterPolicy)]
         public async Task<ActionResult<AuthResponseDto>> Register(RegisterRequestDto dto, CancellationToken cancellationToken)
         {
             var result = await authService.RegisterAsync(dto, cancellationToken);
@@ -17,11 +20,14 @@ namespace MovieLogger.Api.Controllers
             {
                 RegisterOutcome.Success => Ok(result.AuthResponse),
                 RegisterOutcome.DuplicateEmail => Conflict(new { message = "A user with this email already exists." }),
+                RegisterOutcome.RegistrationClosed => StatusCode(StatusCodes.Status403Forbidden,
+                    new { message = "Registration is currently closed. Existing users can still log in." }),
                 _ => BadRequest()
             };
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting(RateLimitSettings.LoginPolicy)]
         public async Task<ActionResult<AuthResponseDto>> Login(LoginRequestDto dto, CancellationToken cancellationToken)
         {
             var result = await authService.LoginAsync(dto, cancellationToken);

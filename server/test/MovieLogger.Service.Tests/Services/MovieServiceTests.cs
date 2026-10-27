@@ -18,6 +18,9 @@ namespace MovieLogger.Service.Tests.Services
         private readonly IMapper _mapper = TestMapperFactory.Create();
         private readonly MovieService _sut;
 
+        private const int CreatorId = 7;
+        private const int OtherUserId = 8;
+
         public MovieServiceTests()
         {
             _sut = new MovieService(_movieRepository, _genreRepository, _movieWatchRepository, _mapper);
@@ -156,7 +159,7 @@ namespace MovieLogger.Service.Tests.Services
             _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns((Movie?)null);
             var dto = new UpdateMovieDto { Title = "Arrival", ReleaseYear = 2016, GenreIds = [1] };
 
-            var result = await _sut.UpdateAsync(1, dto);
+            var result = await _sut.UpdateAsync(1, dto, CreatorId);
 
             result.Outcome.Should().Be(MovieMutationOutcome.NotFound);
             await _genreRepository.DidNotReceive().GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>());
@@ -167,12 +170,12 @@ namespace MovieLogger.Service.Tests.Services
         public async Task UpdateAsync_InvalidGenreIds_ReturnsInvalidGenreIdsWithoutMutatingOrUpdatingMovie()
         {
             var existingGenre = new Genre { Id = 1, Name = "Sci-Fi" };
-            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseYear = 2000, Genres = [existingGenre] };
+            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseYear = 2000, CreatedByUserId = CreatorId, Genres = [existingGenre] };
             _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingMovie);
             _genreRepository.GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>()).Returns(new List<Genre>());
             var dto = new UpdateMovieDto { Title = "New Title", ReleaseYear = 2020, GenreIds = [99] };
 
-            var result = await _sut.UpdateAsync(1, dto);
+            var result = await _sut.UpdateAsync(1, dto, CreatorId);
 
             result.Outcome.Should().Be(MovieMutationOutcome.InvalidGenreIds);
             result.InvalidGenreIds.Should().BeEquivalentTo(new[] { 99 });
@@ -186,13 +189,13 @@ namespace MovieLogger.Service.Tests.Services
         {
             var oldGenre = new Genre { Id = 1, Name = "Sci-Fi" };
             var newGenre = new Genre { Id = 2, Name = "Drama" };
-            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseYear = 2000, Genres = [oldGenre] };
+            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseYear = 2000, CreatedByUserId = CreatorId, Genres = [oldGenre] };
             _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingMovie);
             _genreRepository.GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>())
                 .Returns(new List<Genre> { newGenre });
             var dto = new UpdateMovieDto { Title = "New Title", ReleaseYear = 2020, GenreIds = [2] };
 
-            var result = await _sut.UpdateAsync(1, dto);
+            var result = await _sut.UpdateAsync(1, dto, CreatorId);
 
             result.Outcome.Should().Be(MovieMutationOutcome.Success);
             existingMovie.Title.Should().Be("New Title");
@@ -205,11 +208,11 @@ namespace MovieLogger.Service.Tests.Services
         [Fact]
         public async Task UpdateAsync_ValidWithEmptyGenreIds_ClearsGenres()
         {
-            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseYear = 2000, Genres = [new Genre { Id = 1, Name = "Sci-Fi" }] };
+            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseYear = 2000, CreatedByUserId = CreatorId, Genres = [new Genre { Id = 1, Name = "Sci-Fi" }] };
             _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingMovie);
             var dto = new UpdateMovieDto { Title = "New Title", ReleaseYear = 2020, GenreIds = [] };
 
-            var result = await _sut.UpdateAsync(1, dto);
+            var result = await _sut.UpdateAsync(1, dto, CreatorId);
 
             result.Outcome.Should().Be(MovieMutationOutcome.Success);
             existingMovie.Genres.Should().BeEmpty();
@@ -217,23 +220,67 @@ namespace MovieLogger.Service.Tests.Services
         }
 
         [Fact]
-        public async Task DeleteAsync_RepositoryReturnsTrue_ReturnsTrue()
+        public async Task UpdateAsync_ByAnotherUser_ReturnsNotCreatorWithoutMutatingOrUpdatingMovie()
         {
-            _movieRepository.DeleteAsync(1, Arg.Any<CancellationToken>()).Returns(true);
+            var existingMovie = new Movie { Id = 1, Title = "Old Title", ReleaseYear = 2000, CreatedByUserId = CreatorId };
+            _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>()).Returns(existingMovie);
+            var dto = new UpdateMovieDto { Title = "Vandalised", ReleaseYear = 2020, GenreIds = [1] };
 
-            var result = await _sut.DeleteAsync(1);
+            var result = await _sut.UpdateAsync(1, dto, OtherUserId);
 
-            result.Should().BeTrue();
+            result.Outcome.Should().Be(MovieMutationOutcome.NotCreator);
+            existingMovie.Title.Should().Be("Old Title");
+            await _genreRepository.DidNotReceive().GetByIdsAsync(Arg.Any<IEnumerable<int>>(), Arg.Any<CancellationToken>());
+            await _movieRepository.DidNotReceive().UpdateAsync(Arg.Any<Movie>(), Arg.Any<CancellationToken>());
         }
 
         [Fact]
-        public async Task DeleteAsync_RepositoryReturnsFalse_ReturnsFalse()
+        public async Task UpdateAsync_MovieWithNoCreator_ReturnsNotCreator()
         {
-            _movieRepository.DeleteAsync(99, Arg.Any<CancellationToken>()).Returns(false);
+            _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>())
+                .Returns(new Movie { Id = 1, Title = "Legacy", ReleaseYear = 2000, CreatedByUserId = null });
+            var dto = new UpdateMovieDto { Title = "Legacy", ReleaseYear = 2000 };
 
-            var result = await _sut.DeleteAsync(99);
+            var result = await _sut.UpdateAsync(1, dto, CreatorId);
 
-            result.Should().BeFalse();
+            result.Outcome.Should().Be(MovieMutationOutcome.NotCreator);
+            await _movieRepository.DidNotReceive().UpdateAsync(Arg.Any<Movie>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ByCreator_DeletesAndReturnsSuccess()
+        {
+            _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>())
+                .Returns(new Movie { Id = 1, Title = "Arrival", ReleaseYear = 2016, CreatedByUserId = CreatorId });
+            _movieRepository.DeleteAsync(1, Arg.Any<CancellationToken>()).Returns(true);
+
+            var result = await _sut.DeleteAsync(1, CreatorId);
+
+            result.Should().Be(MovieMutationOutcome.Success);
+            await _movieRepository.Received(1).DeleteAsync(1, Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task DeleteAsync_ByAnotherUser_ReturnsNotCreatorWithoutDeleting()
+        {
+            _movieRepository.GetByIdAsync(1, Arg.Any<CancellationToken>())
+                .Returns(new Movie { Id = 1, Title = "Arrival", ReleaseYear = 2016, CreatedByUserId = CreatorId });
+
+            var result = await _sut.DeleteAsync(1, OtherUserId);
+
+            result.Should().Be(MovieMutationOutcome.NotCreator);
+            await _movieRepository.DidNotReceive().DeleteAsync(Arg.Any<int>(), Arg.Any<CancellationToken>());
+        }
+
+        [Fact]
+        public async Task DeleteAsync_MovieNotFound_ReturnsNotFoundWithoutDeleting()
+        {
+            _movieRepository.GetByIdAsync(99, Arg.Any<CancellationToken>()).Returns((Movie?)null);
+
+            var result = await _sut.DeleteAsync(99, CreatorId);
+
+            result.Should().Be(MovieMutationOutcome.NotFound);
+            await _movieRepository.DidNotReceive().DeleteAsync(Arg.Any<int>(), Arg.Any<CancellationToken>());
         }
     }
 }

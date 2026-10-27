@@ -225,6 +225,61 @@ namespace MovieLogger.Api.Tests.Controllers
         }
 
         [Fact]
+        public async Task Update_ByAnotherUser_ReturnsForbiddenAndLeavesMovieUnchanged()
+        {
+            var creator = await RegisterUserAsync("Creator");
+            var other = await RegisterUserAsync("Other");
+            var movie = await CreateMovieAsync(creator, "Heat", releaseYear: 1995);
+
+            var response = await other.Client.PutAsJsonAsync($"/api/movies/{movie.Id}", new UpdateMovieDto
+            {
+                Title = "Vandalised",
+                ReleaseYear = 1995
+            });
+
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            var details = await CreateClient().GetFromJsonAsync<MovieDetailsResponseDto>($"/api/movies/{movie.Id}");
+            details!.Movie.Title.Should().Be("Heat");
+        }
+
+        [Fact]
+        public async Task Delete_ByCreator_ReturnsNoContentAndRemovesMovie()
+        {
+            var creator = await RegisterUserAsync();
+            var movie = await CreateMovieAsync(creator, "Collateral");
+
+            var response = await creator.Client.DeleteAsync($"/api/movies/{movie.Id}");
+
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            (await CreateClient().GetAsync($"/api/movies/{movie.Id}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Delete_ByAnotherUser_ReturnsForbiddenAndKeepsEveryonesHistory()
+        {
+            var creator = await RegisterUserAsync("Creator");
+            var other = await RegisterUserAsync("Other");
+            var movie = await CreateMovieAsync(creator, "Thief");
+            await LogWatchAsync(creator, movie.Id, WatchedOn, rating: 4);
+
+            var response = await other.Client.DeleteAsync($"/api/movies/{movie.Id}");
+
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            var details = await creator.Client.GetFromJsonAsync<MovieDetailsResponseDto>($"/api/movies/{movie.Id}");
+            details!.UserHistory!.TimesWatched.Should().Be(1);
+        }
+
+        [Fact]
+        public async Task Delete_ForNonexistentMovie_ReturnsNotFound()
+        {
+            var user = await RegisterUserAsync();
+
+            var response = await user.Client.DeleteAsync($"/api/movies/{int.MaxValue}");
+
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
         public async Task GetById_ForNonexistentMovie_ReturnsNotFound()
         {
             var response = await CreateClient().GetAsync($"/api/movies/{int.MaxValue}");

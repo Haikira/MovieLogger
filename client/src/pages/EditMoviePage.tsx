@@ -1,10 +1,11 @@
 import { useNavigate, useParams } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
-import { Clapperboard } from 'lucide-react';
+import { Clapperboard, Lock } from 'lucide-react';
 import { isApiError } from '../api/client';
 import { moviesApi } from '../api/endpoints';
 import { queryKeys } from '../api/queryKeys';
 import type { Movie, UpdateMovieRequest } from '../api/types';
+import { useCurrentUser } from '../auth/useAuth';
 import { PageHeader } from '../components/layout/PageHeader';
 import { MovieForm, type MovieFormAction } from '../components/movies/MovieForm';
 import { ButtonLink } from '../components/ui/Button';
@@ -21,6 +22,7 @@ export function EditMoviePage() {
   const movieId = Number(params.movieId);
   const validId = Number.isInteger(movieId) && movieId > 0;
   const details = useMovieDetails(validId ? movieId : null);
+  const user = useCurrentUser();
 
   let content;
   if (!validId || (details.isError && isApiError(details.error, 404))) {
@@ -44,6 +46,17 @@ export function EditMoviePage() {
     content = (
       <Card>
         <ErrorState error={details.error} title="Couldn't load this movie" onRetry={() => details.refetch()} />
+      </Card>
+    );
+  } else if (details.data.movie.createdByUserId !== user.id) {
+    content = (
+      <Card>
+        <EmptyState
+          icon={<Lock size={22} />}
+          title="You can't edit this movie"
+          description="Only the person who added a movie to the catalogue can change its details."
+          actions={<ButtonLink to={`/movies/${details.data.movie.id}`}>Back to the Movie</ButtonLink>}
+        />
       </Card>
     );
   } else {

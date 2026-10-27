@@ -1,0 +1,2 @@
+# Certificates are copied into a Linux image; keep LF endings on every checkout.
+*.crt text eol=lf

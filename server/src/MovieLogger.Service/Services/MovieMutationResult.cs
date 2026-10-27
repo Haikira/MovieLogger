@@ -6,7 +6,9 @@ namespace MovieLogger.Service.Services
     {
         Success,
         NotFound,
-        InvalidGenreIds
+        InvalidGenreIds,
+        /// <summary>The movie exists but was added by another user, who alone may change or delete it.</summary>
+        NotCreator
     }
 
     public class MovieMutationResult
@@ -22,6 +24,9 @@ namespace MovieLogger.Service.Services
 
         public static MovieMutationResult NotFound() =>
             new() { Outcome = MovieMutationOutcome.NotFound };
+
+        public static MovieMutationResult NotCreator() =>
+            new() { Outcome = MovieMutationOutcome.NotCreator };
 
         public static MovieMutationResult InvalidGenres(IReadOnlyList<int> invalidGenreIds) =>
             new() { Outcome = MovieMutationOutcome.InvalidGenreIds, InvalidGenreIds = invalidGenreIds };

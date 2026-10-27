@@ -67,3 +67,46 @@ Other useful commands:
 2. Write forward-only T-SQL — there is no corresponding "down" migration; a schema change is reverted, if ever needed, by writing another forward migration.
 3. If the change affects columns/relationships EF Core queries against, update the matching `IEntityTypeConfiguration<T>` in `server/src/MovieLogger.DAL/Configurations/` (and the entity in `server/src/MovieLogger.Service/Entities/`) to match — Flyway and EF's model are no longer kept in sync automatically.
 4. Seed/reference data changes go in their own migration file, separate from schema changes, and should be written idempotently (e.g. `WHERE NOT EXISTS`) so they're safe if ever re-run outside Flyway's normal history-tracked `migrate` flow.
+
+## Migrating a deployed database (the migration image)
+
+Deployed databases are migrated by a container image, [`database/Dockerfile`](../database/Dockerfile), run as a one-off task (on AWS, an ECS task in the same VPC as RDS; see [ADR-016](adr/ADR-016-host-on-aws-with-cloudfront-ecs-fargate-and-rds.md)). It contains the Flyway CLI (13.7.0, as used locally), the files in `database/migrations`, Microsoft's go-sqlcmd, and the Amazon RDS root CAs. Build it from the repository root:
+
+```
+make docker-build-migrator
+```
+
+which runs `docker build -t movielogger-migrator -f database/Dockerfile .`. [`database/Dockerfile.dockerignore`](../database/Dockerfile.dockerignore) limits the build context to the migrations, the migrator scripts and the RDS certificates.
+
+Each run of [`database/migrator/migrate.sh`](../database/migrator/migrate.sh):
+
+1. **Checks its inputs** and exits with code 2 if any is missing or unsafe. Names must be simple identifiers, and the app password must be 16–128 characters of letters, digits and `. _ ~ + = -`, because these values are substituted into SQL.
+2. **Bootstraps** with [`bootstrap.sql`](../database/migrator/bootstrap.sql), as the admin login against `master`:
+   - creates the database if it doesn't exist;
+   - creates the API's login if it doesn't exist, or resets its password to the current secret;
+   - adds that login to the database as a user in `db_datareader` and `db_datawriter` only. The API can read and write rows, but can't change the schema or reach other databases.
+3. **Runs `flyway migrate`** as the admin login, with `cleanDisabled=true`. Only pending migrations are applied; nothing is ever dropped.
+
+Every step is safe to re-run.
+
+| Environment variable | Required | Notes |
+| --- | --- | --- |
+| `DB_HOST` | **Yes** | Database hostname, e.g. the RDS endpoint. Certificates are checked against this name, so use the endpoint, not an IP address. |
+| `DB_ADMIN_USER`, `DB_ADMIN_PASSWORD` | **Yes** | Admin login for the bootstrap and Flyway (the RDS master user). Secret. |
+| `APP_DB_PASSWORD` | **Yes** | Password for the API's login. Secret; the same value goes in the API's connection string. |
+| `DB_PORT` | No | Default `1433`. |
+| `DB_NAME` | No | Default `MovieLoggerDb`. |
+| `APP_DB_LOGIN` | No | Default `movielogger_app`. |
+
+**TLS is always validated, and there's no setting to turn it off.** go-sqlcmd runs with `-N mandatory` and trusts only the RDS root CAs (`SSL_CERT_FILE`). The JDBC driver uses `encrypt=true;trustServerCertificate=false` against the Java trust store, which the image adds the RDS roots to. So the image only works against servers with an RDS-issued certificate, and a local SQL Server with a self-signed certificate is refused by design. To migrate your local database, use the Flyway CLI as described above.
+
+What was verified locally, without AWS:
+
+- The image builds; it contains sqlcmd v1.10.0 (SHA-256 pinned), Flyway 13.7.0, the three migrations and the RDS roots in both trust stores; and it runs as a non-root user.
+- Missing or unsafe inputs (quotes, `$`, short passwords, bad names or hostnames) are rejected before any connection is made.
+- Pointed at a local SQL Server with a self-signed certificate, sqlcmd fails hostname validation and JDBC fails chain validation (`PKIX path building failed`), and the script stops before Flyway.
+- `bootstrap.sql` and the migrations were run against a throwaway local database, using the host's tools rather than the image:
+  - both runs succeed, and the second changes nothing except resetting the password;
+  - the app login can select, insert and delete rows, but is refused `CREATE`/`ALTER`/`DROP TABLE`, `CREATE USER`, and access to other databases.
+
+Not yet verified (needs RDS): a full validated run of the image, and the RDS master user's permissions for the bootstrap (RDS master users aren't `sysadmin`).

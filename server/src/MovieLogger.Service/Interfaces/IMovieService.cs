@@ -12,8 +12,8 @@ namespace MovieLogger.Service.Interfaces
 
         Task<MovieMutationResult> CreateAsync(CreateMovieDto dto, int createdByUserId, CancellationToken cancellationToken = default);
 
-        Task<MovieMutationResult> UpdateAsync(int id, UpdateMovieDto dto, CancellationToken cancellationToken = default);
+        Task<MovieMutationResult> UpdateAsync(int id, UpdateMovieDto dto, int currentUserId, CancellationToken cancellationToken = default);
 
-        Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
+        Task<MovieMutationOutcome> DeleteAsync(int id, int currentUserId, CancellationToken cancellationToken = default);
     }
 }

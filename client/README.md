@@ -63,7 +63,9 @@ deployment you can either serve the built `dist/` from the same origin as the AP
 `VITE_API_BASE_URL` empty), or host it separately and set `VITE_API_BASE_URL`; the latter needs the
 frontend's origin adding to the API's `Cors:AllowedOrigins` (see
 [`docs/deployment.md`](../docs/deployment.md)). `VITE_*` values are baked in at build time, so set
-`VITE_API_BASE_URL` before `npm run build`.
+`VITE_API_BASE_URL` before `npm run build`. The AWS deployment takes the first approach: CloudFront
+serves `dist/` and `/api` from one hostname, so `VITE_API_BASE_URL` stays empty (see
+[ADR-016](../docs/adr/ADR-016-host-on-aws-with-cloudfront-ecs-fargate-and-rds.md)).
 
 ## Project structure
 
