@@ -53,6 +53,26 @@ The container listens on plain HTTP on port **8080**. TLS is expected to termina
 
 Redirecting HTTP to HTTPS is best done by the load balancer's HTTP listener. The API's own HTTPS redirection only runs when it knows the public HTTPS port; set `ASPNETCORE_HTTPS_PORT=443` if you want it. Without it, the API logs `Failed to determine the https port for redirect` once and doesn't redirect, which is harmless.
 
+## Database connection and TLS (RDS)
+
+The API connects to RDS for SQL Server with encryption **and** full certificate validation. The connection string has this shape (a secret: it lives in SSM Parameter Store, never in a committed file):
+
+```
+Server=<db-instance>.<id>.eu-north-1.rds.amazonaws.com,1433;Database=MovieLoggerDb;User Id=<app login>;Password=<password>;Encrypt=True
+```
+
+- **Don't add `TrustServerCertificate=True`.** It keeps the connection encrypted but stops the driver checking that it's talking to the real database, which defeats the point of TLS.
+- **Use the RDS endpoint hostname**, not an IP address, because the certificate is issued for that name and the driver checks it.
+- **The image trusts the Amazon RDS root CAs for `eu-north-1`.** [`server/Dockerfile`](../server/Dockerfile) adds the certificates in [`server/certs/aws-rds`](../server/certs/aws-rds/README.md) (from AWS's published regional bundle) to the container's system trust store with `update-ca-certificates`; .NET on Linux validates against that store. A database in another region needs that region's bundle.
+- **The database enforces it too:** its parameter group sets `rds.force_ssl=1`, so unencrypted connections are refused.
+
+How this was checked locally (no AWS connection):
+
+1. Inside the built image, .NET builds a trusted chain for each of the three RDS root CAs, and rejects an unknown self-signed CA (`UntrustedRoot`).
+2. The container, given `Encrypt=True` and pointed at a local SQL Server with a self-signed certificate, refuses the connection with `Certificate failed chain validation … UntrustedRoot` and `Certificate name mismatch`. Validation is enforced, not bypassed. The HTTP response is a bare `500` with no details, and the connection-string password appears nowhere in the logs.
+
+A successful validated connection to RDS itself can only be confirmed once the database exists.
+
 ## Building and running the container locally
 
 Requires Docker. From the repository root:
@@ -74,6 +94,8 @@ make docker-run
 Then `http://localhost:8080/health` should return `Healthy`.
 
 The container runs on Linux, so it can't use the Windows Integrated Authentication in the local development connection string. To call endpoints that use the database from the container, connect with a SQL Server login (and `Server=host.docker.internal` to reach SQL Server on the host). `/health` works with any non-empty connection string because it never opens it.
+
+The image only trusts public CAs and the Amazon RDS root CAs. A local SQL Server normally has a self-signed certificate, so an encrypted connection from the container to it fails certificate validation, by design. For local container testing against such a server only, you can add `TrustServerCertificate=True` to the connection string you pass in, or use `Encrypt=False`. Never use either for RDS.
 
 ## Database migrations
 

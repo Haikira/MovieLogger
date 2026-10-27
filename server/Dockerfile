@@ -26,6 +26,12 @@ WORKDIR /app
 ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 
+# Trust the Amazon RDS root CAs (see certs/aws-rds/README.md), so SQL Server connections to RDS can use
+# Encrypt=True with full certificate validation. .NET on Linux uses the system trust store, which
+# update-ca-certificates rebuilds; it must run as root, before switching user.
+COPY certs/aws-rds/*.crt /usr/local/share/ca-certificates/aws-rds/
+RUN update-ca-certificates
+
 # Run as the image's built-in non-root user.
 USER $APP_UID
 
