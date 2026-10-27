@@ -1,4 +1,4 @@
-import type { CreateMovieRequest } from '../api/types';
+import type { CreateMovieRequest, Movie } from '../api/types';
 import { isValidHttpUrl } from './validation';
 
 export interface MovieFormValues {
@@ -15,7 +15,20 @@ export type MovieField = keyof MovieFormValues;
 
 const WHOLE_NUMBER = /^\d+$/;
 
-/** Mirrors CreateMovieDto's rules, plus the design's "at least one genre" requirement. */
+/** The form's starting values when editing an existing movie. */
+export function toMovieFormValues(movie: Movie): MovieFormValues {
+  return {
+    title: movie.title,
+    releaseYear: String(movie.releaseYear),
+    runtimeMinutes: movie.runtimeMinutes ? String(movie.runtimeMinutes) : '',
+    director: movie.director ?? '',
+    genreIds: movie.genres.map((genre) => genre.id),
+    synopsis: movie.synopsis ?? '',
+    posterImageUrl: movie.posterImageUrl ?? '',
+  };
+}
+
+/** Mirrors CreateMovieDto's (and UpdateMovieDto's) rules, plus the design's "at least one genre" requirement. */
 export function validateMovie(values: MovieFormValues): Partial<Record<MovieField, string>> {
   const errors: Partial<Record<MovieField, string>> = {};
   const title = values.title.trim();

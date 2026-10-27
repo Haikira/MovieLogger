@@ -16,6 +16,7 @@ import type {
   MyMoviesQuery,
   PagedResult,
   RegisterRequest,
+  UpdateMovieRequest,
   UpdateUserRequest,
   User,
   WatchlistItem,
@@ -60,6 +61,8 @@ export const moviesApi = {
   details: (id: number) => apiRequest<MovieDetails>(`/api/movies/${id}`),
   create: (request: CreateMovieRequest) =>
     apiRequest<Movie>('/api/movies', { method: 'POST', body: request }),
+  update: (id: number, request: UpdateMovieRequest) =>
+    apiRequest<void>(`/api/movies/${id}`, { method: 'PUT', body: request }),
 };
 
 export const movieWatchesApi = {

@@ -3,6 +3,7 @@ import { PublicOnly, RequireAuth } from './auth/RouteGuards';
 import { AppLayout } from './components/layout/AppLayout';
 import { AddMoviePage } from './pages/AddMoviePage';
 import { DashboardPage } from './pages/DashboardPage';
+import { EditMoviePage } from './pages/EditMoviePage';
 import { LoginPage } from './pages/LoginPage';
 import { LogMoviePage } from './pages/LogMoviePage';
 import { MovieDetailsPage } from './pages/MovieDetailsPage';
@@ -26,6 +27,7 @@ export function AppRoutes() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/movies/new" element={<AddMoviePage />} />
         <Route path="/movies/:movieId" element={<MovieDetailsPage />} />
+        <Route path="/movies/:movieId/edit" element={<EditMoviePage />} />
         <Route path="/log" element={<LogMoviePage />} />
         <Route path="/logs/:watchId/edit" element={<LogMoviePage />} />
         <Route path="/watchlist" element={<WatchlistPage />} />

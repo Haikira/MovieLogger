@@ -137,6 +137,94 @@ namespace MovieLogger.Api.Tests.Controllers
         }
 
         [Fact]
+        public async Task Update_WhenAuthenticated_ReplacesDetailsAndGenres()
+        {
+            var user = await RegisterUserAsync();
+            var movie = await CreateMovieAsync(user, "Blade Runer", releaseYear: 1981, genreIds: [DramaGenreId]);
+
+            var response = await user.Client.PutAsJsonAsync($"/api/movies/{movie.Id}", new UpdateMovieDto
+            {
+                Title = "Blade Runner",
+                ReleaseYear = 1982,
+                Director = "Ridley Scott",
+                Synopsis = "A blade runner hunts four replicants in 2019 Los Angeles.",
+                GenreIds = [ScienceFictionGenreId]
+            });
+
+            response.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var details = await CreateClient().GetFromJsonAsync<MovieDetailsResponseDto>($"/api/movies/{movie.Id}");
+            details!.Movie.Title.Should().Be("Blade Runner");
+            details.Movie.ReleaseYear.Should().Be(1982);
+            details.Movie.Director.Should().Be("Ridley Scott");
+            details.Movie.RuntimeMinutes.Should().BeNull();
+            details.Movie.Genres.Select(g => g.Name).Should().Equal("Science Fiction");
+            details.Movie.CreatedByUserId.Should().Be(user.Id);
+        }
+
+        [Fact]
+        public async Task Update_WithInvalidGenreIds_ReturnsBadRequestAndLeavesMovieUnchanged()
+        {
+            var user = await RegisterUserAsync();
+            var movie = await CreateMovieAsync(user, "Arrival", releaseYear: 2016, genreIds: [DramaGenreId]);
+
+            var response = await user.Client.PutAsJsonAsync($"/api/movies/{movie.Id}", new UpdateMovieDto
+            {
+                Title = "Arrival (Edited)",
+                ReleaseYear = 2016,
+                GenreIds = [int.MaxValue]
+            });
+
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+            var details = await CreateClient().GetFromJsonAsync<MovieDetailsResponseDto>($"/api/movies/{movie.Id}");
+            details!.Movie.Title.Should().Be("Arrival");
+            details.Movie.Genres.Select(g => g.Name).Should().Equal("Drama");
+        }
+
+        [Fact]
+        public async Task Update_WithoutTitle_ReturnsBadRequest()
+        {
+            var user = await RegisterUserAsync();
+            var movie = await CreateMovieAsync(user, "Moon");
+
+            var response = await user.Client.PutAsJsonAsync($"/api/movies/{movie.Id}", new UpdateMovieDto
+            {
+                Title = "",
+                ReleaseYear = 2009
+            });
+
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
+        [Fact]
+        public async Task Update_ForNonexistentMovie_ReturnsNotFound()
+        {
+            var user = await RegisterUserAsync();
+
+            var response = await user.Client.PutAsJsonAsync($"/api/movies/{int.MaxValue}", new UpdateMovieDto
+            {
+                Title = "Nothing Here",
+                ReleaseYear = 2000
+            });
+
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Update_WithoutToken_ReturnsUnauthorized()
+        {
+            var user = await RegisterUserAsync();
+            var movie = await CreateMovieAsync(user, "Sunshine");
+
+            var response = await CreateClient().PutAsJsonAsync($"/api/movies/{movie.Id}", new UpdateMovieDto
+            {
+                Title = "Sunshine (Edited)",
+                ReleaseYear = 2007
+            });
+
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+
+        [Fact]
         public async Task GetById_ForNonexistentMovie_ReturnsNotFound()
         {
             var response = await CreateClient().GetAsync($"/api/movies/{int.MaxValue}");

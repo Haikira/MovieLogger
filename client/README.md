@@ -147,6 +147,9 @@ These follow the decisions agreed before implementation:
 - **Passwords** in the register and change-password forms must be 8+ characters with a number,
   as in the design. The API enforces the same rule.
 - **Add Movie** requires at least one genre, chosen from `GET /api/genres`.
+- **Edit Movie** (`/movies/:id/edit`, from **Edit Details** on a movie's page) uses the same form
+  and rules as Add Movie and saves with `PUT /api/movies/{id}`. The catalogue is shared, so any
+  signed-in user can edit any movie, matching the API.
 - **Logging a watchlisted movie** doesn't remove it from the watchlist. After saving, the user is
   asked whether to remove it.
 - **Dashboard "Recently Watched"** uses `GET /api/moviewatches/my-movies` sorted by newest watched,

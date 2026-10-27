@@ -75,6 +75,9 @@ export interface CreateMovieRequest {
   genreIds: number[];
 }
 
+/** UpdateMovieDto has the same fields and rules as CreateMovieDto. */
+export type UpdateMovieRequest = CreateMovieRequest;
+
 export interface MovieSearchQuery {
   title?: string;
   director?: string;

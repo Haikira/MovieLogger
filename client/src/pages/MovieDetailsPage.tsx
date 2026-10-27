@@ -157,6 +157,9 @@ function MovieDetailsContent({ movie, history }: { movie: Movie; history: UserMo
             >
               {onWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
             </Button>
+            <ButtonLink to={`/movies/${movie.id}/edit`} variant="secondary" aria-label={`Edit details of ${movie.title}`}>
+              Edit Details
+            </ButtonLink>
           </div>
           <div className="live-region" aria-live="assertive">{watchlistError && <Alert tone="error">{watchlistError}</Alert>}</div>
 
