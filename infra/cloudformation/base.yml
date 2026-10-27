@@ -170,9 +170,11 @@ Resources:
       ImageTagMutability: IMMUTABLE
       ImageScanningConfiguration: { ScanOnPush: true }
       EmptyOnDelete: true
+      # Each push is an image index plus untagged child manifests (image, provenance attestation), so count
+      # tagged images only. ECR never expires a child while its index exists; rule 2 clears orphaned ones.
       LifecyclePolicy:
         LifecyclePolicyText: >-
-          {"rules":[{"rulePriority":1,"description":"Keep the last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
+          {"rules":[{"rulePriority":1,"description":"Keep the last 5 tagged images","selection":{"tagStatus":"tagged","tagPatternList":["*"],"countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}},{"rulePriority":2,"description":"Expire untagged images no longer referenced by an index","selection":{"tagStatus":"untagged","countType":"sinceImagePushed","countUnit":"days","countNumber":1},"action":{"type":"expire"}}]}
 
   MigratorRepository:
     Type: AWS::ECR::Repository
@@ -183,7 +185,7 @@ Resources:
       EmptyOnDelete: true
       LifecyclePolicy:
         LifecyclePolicyText: >-
-          {"rules":[{"rulePriority":1,"description":"Keep the last 5 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}}]}
+          {"rules":[{"rulePriority":1,"description":"Keep the last 5 tagged images","selection":{"tagStatus":"tagged","tagPatternList":["*"],"countType":"imageCountMoreThan","countNumber":5},"action":{"type":"expire"}},{"rulePriority":2,"description":"Expire untagged images no longer referenced by an index","selection":{"tagStatus":"untagged","countType":"sinceImagePushed","countUnit":"days","countNumber":1},"action":{"type":"expire"}}]}
 
   # Private; CloudFront reads it through origin access control (bucket policy in app.yml).
   SiteBucket:
