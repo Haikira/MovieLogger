@@ -17,6 +17,8 @@ ASP.NET Core maps environment variables onto configuration keys, with `__` (doub
 
 `Jwt:Issuer`, `Jwt:Audience` and `Jwt:ExpirationMinutes` have committed defaults in `appsettings.json` and can be overridden the same way (`Jwt__Issuer` etc.).
 
+Only the user who added a movie (`CreatedByUserId`) can edit (`PUT`) or delete it; anyone else gets 403. Deleting a movie cascades to every user's watch logs, watchlist entries and list items for it.
+
 ### CORS
 
 The frontend and API are hosted on different origins, so the browser only lets the frontend call the API if the API allows that origin.

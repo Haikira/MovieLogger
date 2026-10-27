@@ -42,11 +42,12 @@ namespace MovieLogger.Api.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, UpdateMovieDto dto, CancellationToken cancellationToken)
         {
-            var result = await movieService.UpdateAsync(id, dto, cancellationToken);
+            var result = await movieService.UpdateAsync(id, dto, User.GetUserId(), cancellationToken);
             return result.Outcome switch
             {
                 MovieMutationOutcome.Success => NoContent(),
                 MovieMutationOutcome.NotFound => NotFound(),
+                MovieMutationOutcome.NotCreator => Forbid(),
                 MovieMutationOutcome.InvalidGenreIds => BadRequest(new { message = "One or more GenreIds do not exist.", invalidGenreIds = result.InvalidGenreIds }),
                 _ => BadRequest()
             };
@@ -56,8 +57,12 @@ namespace MovieLogger.Api.Controllers
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
-            var deleted = await movieService.DeleteAsync(id, cancellationToken);
-            return deleted ? NoContent() : NotFound();
+            return await movieService.DeleteAsync(id, User.GetUserId(), cancellationToken) switch
+            {
+                MovieMutationOutcome.Success => NoContent(),
+                MovieMutationOutcome.NotCreator => Forbid(),
+                _ => NotFound()
+            };
         }
     }
 }

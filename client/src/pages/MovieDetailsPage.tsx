@@ -157,9 +157,12 @@ function MovieDetailsContent({ movie, history }: { movie: Movie; history: UserMo
             >
               {onWatchlist ? 'Remove from Watchlist' : 'Add to Watchlist'}
             </Button>
-            <ButtonLink to={`/movies/${movie.id}/edit`} variant="secondary" aria-label={`Edit details of ${movie.title}`}>
-              Edit Details
-            </ButtonLink>
+            {/* Only the user who added a movie may change it (the API returns 403 for anyone else). */}
+            {movie.createdByUserId === user.id && (
+              <ButtonLink to={`/movies/${movie.id}/edit`} variant="secondary" aria-label={`Edit details of ${movie.title}`}>
+                Edit Details
+              </ButtonLink>
+            )}
           </div>
           <div className="live-region" aria-live="assertive">{watchlistError && <Alert tone="error">{watchlistError}</Alert>}</div>
 

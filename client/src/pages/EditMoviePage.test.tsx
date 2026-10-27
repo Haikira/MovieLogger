@@ -65,6 +65,16 @@ describe('Edit Movie page', () => {
     expect(currentLocation()).toBe('/movies/1/edit');
   });
 
+  it('explains instead of showing the form when another user added the movie', async () => {
+    const api = createApi().on('GET', '/api/movies/1', movieDetails({ ...alien, createdByUserId: 999 }));
+    renderApp('/movies/1/edit');
+
+    expect(await screen.findByText("You can't edit this movie")).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Save Changes' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Back to the Movie' })).toHaveAttribute('href', '/movies/1');
+    expect(api.calls('PUT', '/api/movies/1')).toHaveLength(0);
+  });
+
   it('shows "not found" for a movie that does not exist', async () => {
     createApi().on('GET', '/api/movies/99', json(404));
     renderApp('/movies/99/edit');
