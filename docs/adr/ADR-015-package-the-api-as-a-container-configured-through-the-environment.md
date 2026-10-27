@@ -1,7 +1,7 @@
 # ADR-015: Package the API as a container configured through the environment
 
 ## Status
-Accepted
+Accepted. The hosting assumption in the Context (frontend on AWS Amplify, on a different origin from the API) is replaced by [ADR-016](ADR-016-host-on-aws-with-cloudfront-ecs-fargate-and-rds.md): CloudFront serves the frontend and the API from one origin. The container, configuration, CORS and forwarded-header decisions below still apply.
 
 ## Context
 MovieLogger is being prepared for AWS. The React frontend will be hosted on AWS Amplify and the API on ECS/Fargate behind a load balancer, so they'll be on different origins. Until now the API only ran locally: the base `appsettings.json` held the local Windows-authenticated SQL Server connection string (so a deployed instance missing its own connection string would quietly try `localhost`), the JWT key was only checked for presence, there was no health endpoint, no CORS policy, and nothing told the app that requests had arrived at a TLS-terminating proxy over HTTPS.

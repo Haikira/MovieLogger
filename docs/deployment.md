@@ -2,7 +2,7 @@
 
 The API is packaged as a container image ([`server/Dockerfile`](../server/Dockerfile)) and configured entirely through environment variables. Nothing environment-specific or secret is committed. See [ADR-015](adr/ADR-015-package-the-api-as-a-container-configured-through-the-environment.md) for the reasoning.
 
-The React frontend is built and hosted separately (see [`client/README.md`](../client/README.md)).
+The React frontend is built separately (see [`client/README.md`](../client/README.md)). On AWS, CloudFront serves the frontend from S3 and forwards `/api/*` to the API through an internal load balancer, so both share one origin. [ADR-016](adr/ADR-016-host-on-aws-with-cloudfront-ecs-fargate-and-rds.md) describes the architecture, its costs and the alternatives considered.
 
 ## Required configuration
 
@@ -34,7 +34,7 @@ Only the user who added a movie (`CreatedByUserId`) can edit (`PUT`) or delete i
 
 ### CORS
 
-The frontend and API are hosted on different origins, so the browser only lets the frontend call the API if the API allows that origin.
+CORS is only needed when the frontend and API are on different origins, because the browser then only lets the frontend call the API if the API allows that origin. The AWS deployment serves both from the same CloudFront hostname, so it leaves `Cors:AllowedOrigins` empty.
 
 - Origins come only from `Cors:AllowedOrigins`. With none configured, CORS is off. That's the case in local development, where the Vite dev server proxies `/api` and everything is same-origin.
 - The policy allows `GET`, `POST`, `PUT` and `DELETE` with the `Authorization` and `Content-Type` headers. It doesn't allow credentials (cookies): the API uses bearer tokens.
@@ -51,7 +51,15 @@ The container listens on plain HTTP on port **8080**. TLS is expected to termina
 - the container must only accept traffic from the load balancer (restrict this with its security group), otherwise clients could spoof their IP or scheme;
 - requests that reached the load balancer over HTTPS are treated as HTTPS.
 
-Redirecting HTTP to HTTPS is best done by the load balancer's HTTP listener. The API's own HTTPS redirection only runs when it knows the public HTTPS port; set `ASPNETCORE_HTTPS_PORT=443` if you want it. Without it, the API logs `Failed to determine the https port for redirect` once and doesn't redirect, which is harmless.
+Redirecting HTTP to HTTPS is best done by whatever terminates TLS. The API's own HTTPS redirection only runs when it knows the public HTTPS port (`ASPNETCORE_HTTPS_PORT`). Without it, the API logs `Failed to determine the https port for redirect` once and doesn't redirect, which is harmless.
+
+### Behind CloudFront and an internal load balancer (AWS)
+
+In the AWS deployment ([ADR-016](adr/ADR-016-host-on-aws-with-cloudfront-ecs-fargate-and-rds.md)) TLS terminates at **CloudFront**, which redirects HTTP viewers to HTTPS. CloudFront reaches an internal load balancer over plain HTTP, and the load balancer forwards to the container. As a result:
+
+- set `ForwardedHeaders__ForwardLimit=2`, so the client IP is the address CloudFront recorded rather than CloudFront's own;
+- the load balancer sets `X-Forwarded-Proto: http`, so the API sees requests as HTTP. **Leave `ASPNETCORE_HTTPS_PORT` unset**: otherwise the API would redirect every request to HTTPS, and CloudFront would forward it as HTTP again, in a loop;
+- the network rules make trusting forwarded headers safe: the task's security group accepts port 8080 only from the load balancer's security group, and the load balancer only accepts traffic from CloudFront.
 
 ## Database connection and TLS (RDS)
 

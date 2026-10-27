@@ -51,7 +51,7 @@ Common tasks run through the [`Makefile`](Makefile) in the repository root. You 
 
 ## Deployment
 
-The API ships as a container image built from [`server/Dockerfile`](server/Dockerfile). [`docs/deployment.md`](docs/deployment.md) lists the configuration it needs (connection string, JWT key, CORS origins), how to build and run the image locally, and how database migrations are applied.
+The API ships as a container image built from [`server/Dockerfile`](server/Dockerfile). [`docs/deployment.md`](docs/deployment.md) lists the configuration it needs (connection string, JWT key, CORS origins, abuse protection), how it connects to RDS over validated TLS, how to build and run the image locally, and how database migrations are applied. The planned AWS architecture (CloudFront, S3, ECS Fargate, RDS for SQL Server) is in [ADR-016](docs/adr/ADR-016-host-on-aws-with-cloudfront-ecs-fargate-and-rds.md).
 
 ## Database Migrations
 
@@ -79,7 +79,8 @@ Key architectural decisions are documented as ADRs in [`docs/adr`](docs/adr):
 - [ADR-012: Use Flyway for schema migrations](docs/adr/ADR-012-use-flyway-for-schema-migrations.md)
 - [ADR-013: Use JWT bearer authentication](docs/adr/ADR-013-use-jwt-bearer-authentication.md)
 - [ADR-014: Use a dedicated SQL Server database for API integration tests](docs/adr/ADR-014-use-a-dedicated-sql-server-database-for-api-integration-tests.md)
-- [ADR-015: Package the API as a container configured through the environment](docs/adr/ADR-015-package-the-api-as-a-container-configured-through-the-environment.md)
+- [ADR-015: Package the API as a container configured through the environment](docs/adr/ADR-015-package-the-api-as-a-container-configured-through-the-environment.md) (hosting assumption refined by ADR-016)
+- [ADR-016: Host on AWS with CloudFront, ECS Fargate and RDS SQL Server](docs/adr/ADR-016-host-on-aws-with-cloudfront-ecs-fargate-and-rds.md)
 
 ## Entity Relationship Diagram
 
