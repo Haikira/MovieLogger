@@ -32,6 +32,7 @@ API_PROFILE   := http
 CLIENT_DIR    := client
 FLYWAY_CONFIG := database/flyway.conf
 API_IMAGE     := movielogger-api
+MIGRATOR_IMAGE := movielogger-migrator
 
 DOTNET := dotnet
 FLYWAY := flyway
@@ -46,7 +47,7 @@ VITE_DEV_ARGS :=
 
 .PHONY: help install-dependencies start-api start-frontend start-dev build-api build-frontend \
         test-api test-frontend test-all verify-project database-status database-migrate clean \
-        check-frontend-dependencies docker-build docker-run
+        check-frontend-dependencies docker-build docker-run docker-build-migrator
 
 # -----------------------------------------------------------------------------
 # Help
@@ -88,6 +89,8 @@ Docker (needs Docker installed; see docs/deployment.md)
   docker-run            Run the API image on http://localhost:8080 in the Production
                         environment. Passes ConnectionStrings__MovieLoggerDb, Jwt__Key
                         and Cors__AllowedOrigins__0 through from your environment.
+  docker-build-migrator Build the database migration image (movielogger-migrator)
+                        from database/Dockerfile. See docs/migrations.md.
 
 Housekeeping
   clean                 Remove build output: .NET bin/obj output (dotnet clean) and
@@ -194,6 +197,11 @@ docker-build:
 # configuration value or secret ever appears in this file or on the command line.
 docker-run:
 	$(DOCKER) run --rm -p 8080:8080 -e ConnectionStrings__MovieLoggerDb -e Jwt__Key -e Cors__AllowedOrigins__0 $(API_IMAGE)
+
+# The context is the repository root because the image needs database/ and server/certs/;
+# database/Dockerfile.dockerignore keeps everything else out of it.
+docker-build-migrator:
+	$(DOCKER) build -t $(MIGRATOR_IMAGE) -f database/Dockerfile .
 
 # -----------------------------------------------------------------------------
 # Housekeeping

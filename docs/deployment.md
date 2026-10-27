@@ -108,3 +108,5 @@ The image only trusts public CAs and the Amazon RDS root CAs. A local SQL Server
 ## Database migrations
 
 The API **doesn't** create or migrate the database, at startup or otherwise. Flyway is the schema authority ([ADR-012](adr/ADR-012-use-flyway-for-schema-migrations.md)): run `flyway migrate` against the target database as a separate deployment step, before starting a version of the API that needs the new schema. The database must already exist. [`database/flyway.conf`](../database/flyway.conf) is for the local instance only; for another database, pass the connection to the Flyway CLI with `-url`, `-user` and `-password` (or the `FLYWAY_URL`, `FLYWAY_USER` and `FLYWAY_PASSWORD` environment variables) rather than committing it. See [`migrations.md`](migrations.md).
+
+For a deployed database, use the migration image (`database/Dockerfile`, built with `make docker-build-migrator`). It creates the database and the API's least-privilege login if needed, then runs `flyway migrate`, always over validated TLS. Its configuration and checks are in [`migrations.md`](migrations.md#migrating-a-deployed-database-the-migration-image).
